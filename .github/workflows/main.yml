@@ -29,7 +29,7 @@ jobs:
         run: |
           rm -rf android-build
           mkdir android-build
-          unzip -q kpro-printer-android-READY.zip -d android-build
+          unzip -q KPRO_PRINTER_ANDROID_BILL_BARCODE_V3.zip
 
       - name: Build APK
         working-directory: android-build
