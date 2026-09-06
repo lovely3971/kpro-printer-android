@@ -1,0 +1,30 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.lovelyshoppe.kanakkupullapro'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.lovelyshoppe.kanakkupullapro'
+        minSdk 23
+        targetSdk 35
+        versionCode 5
+        versionName '1.4.0-v7-share-address-labelcolor-camera-fixedkey'
+    }
+    signingConfigs {
+        debug {
+            storeFile file('kanakku-debug.keystore')
+            storePassword 'kanakkupulla'
+            keyAlias 'kanakkudebugkey'
+            keyPassword 'kanakkupulla'
+        }
+    }
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+}
