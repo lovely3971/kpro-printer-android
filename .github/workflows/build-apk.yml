@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,3 +23,9 @@ jobs:
         with:
           name: KANAKKU-PULLA-PRO-ANDROID-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+      - name: Publish latest APK for in-app updater
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view latest >/dev/null 2>&1 || gh release create latest --title "Kanakku Pulla PRO Latest" --notes "Latest Android APK for in-app updates"
+          gh release upload latest app/build/outputs/apk/debug/app-debug.apk --clobber

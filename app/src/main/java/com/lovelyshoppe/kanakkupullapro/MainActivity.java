@@ -6,6 +6,15 @@ import android.bluetooth.*;
 import android.content.*;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.app.DownloadManager;
+import android.database.Cursor;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+import org.json.JSONObject;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import android.os.*;
 import android.provider.Settings;
 import android.util.Base64;
@@ -20,11 +29,16 @@ import java.util.*;
 public class MainActivity extends Activity {
   private static final UUID SPP=UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
   private static final int REQ_BT=501, REQ_FILE=502, REQ_CAMERA=504;
+  private static final String UPDATE_JSON_URL="https://raw.githubusercontent.com/lovely3971/kpro-printer-android/main/update.json";
+  private long updateDownloadId=-1; private String downloadedApkName="kanakku-pulla-pro-update.apk";
   private WebView web; private BluetoothAdapter bt; private BluetoothSocket socket; private final Queue<byte[]> pendingQueue=new ArrayDeque<>(); private final Object printLock=new Object(); private boolean chooserOpen=false;
   private ValueCallback<Uri[]> fileCallback;
   private PermissionRequest pendingWebPermissionRequest;
 
-  @Override public void onCreate(Bundle b){super.onCreate(b);bt=BluetoothAdapter.getDefaultAdapter();setupWeb();}
+  @Override public void onCreate(Bundle b){
+    super.onCreate(b);bt=BluetoothAdapter.getDefaultAdapter();setupWeb();registerUpdateReceiver();
+    new Handler(Looper.getMainLooper()).postDelayed(()->checkForAppUpdate(false),2500);
+  }
   private void setupWeb(){
     web=new WebView(this);setContentView(web);WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setDatabaseEnabled(true);s.setAllowFileAccess(true);s.setAllowContentAccess(true);s.setMediaPlaybackRequiresUserGesture(false);s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
     web.addJavascriptInterface(new PrinterBridge(),"KPRO_NATIVE");
@@ -56,6 +70,63 @@ public class MainActivity extends Activity {
     });
   }
 
+
+  private void registerUpdateReceiver(){
+    IntentFilter f=new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+    if(Build.VERSION.SDK_INT>=33) registerReceiver(updateReceiver,f,Context.RECEIVER_NOT_EXPORTED); else registerReceiver(updateReceiver,f);
+  }
+  private final BroadcastReceiver updateReceiver=new BroadcastReceiver(){
+    @Override public void onReceive(Context c,Intent i){
+      long id=i.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID,-1);
+      if(id==updateDownloadId) installDownloadedUpdate();
+    }
+  };
+  private void checkForAppUpdate(boolean manual){
+    new Thread(()->{
+      HttpURLConnection con=null;
+      try{
+        con=(HttpURLConnection)new URL(UPDATE_JSON_URL+"?t="+System.currentTimeMillis()).openConnection();
+        con.setConnectTimeout(8000);con.setReadTimeout(8000);con.setUseCaches(false);
+        BufferedReader br=new BufferedReader(new InputStreamReader(con.getInputStream()));
+        StringBuilder sb=new StringBuilder();String line;while((line=br.readLine())!=null)sb.append(line);br.close();
+        JSONObject j=new JSONObject(sb.toString());
+        int latest=j.getInt("versionCode"); String name=j.optString("versionName","New update"); String apk=j.getString("apkUrl"); String notes=j.optString("notes","Latest improvements and fixes.");
+        int current=getPackageManager().getPackageInfo(getPackageName(),0).versionCode;
+        runOnUiThread(()->{if(latest>current)showUpdateDialog(name,notes,apk);else if(manual)toast("App already up to date ✓");});
+      }catch(Exception e){if(manual)runOnUiThread(()->toast("Update check failed — internet check pannunga"));}
+      finally{if(con!=null)con.disconnect();}
+    }).start();
+  }
+  private void showUpdateDialog(String name,String notes,String apkUrl){
+    new AlertDialog.Builder(this).setTitle("Kanakku Pulla PRO Update")
+      .setMessage(name+" available.\n\n"+notes)
+      .setPositiveButton("Update Now",(d,w)->downloadUpdate(apkUrl))
+      .setNegativeButton("Later",null).show();
+  }
+  private void downloadUpdate(String apkUrl){
+    try{
+      DownloadManager dm=(DownloadManager)getSystemService(DOWNLOAD_SERVICE);
+      DownloadManager.Request r=new DownloadManager.Request(Uri.parse(apkUrl));
+      r.setTitle("Kanakku Pulla PRO Update");r.setDescription("Downloading latest version…");
+      r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+      r.setDestinationInExternalFilesDir(this,Environment.DIRECTORY_DOWNLOADS,downloadedApkName);
+      updateDownloadId=dm.enqueue(r);toast("Update downloading…");
+    }catch(Exception e){toast("Update download failed");}
+  }
+  private void installDownloadedUpdate(){
+    try{
+      if(Build.VERSION.SDK_INT>=26&&!getPackageManager().canRequestPackageInstalls()){
+        toast("Allow 'Install unknown apps', then tap Update Now again");
+        startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,Uri.parse("package:"+getPackageName())));return;
+      }
+      File apk=new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),downloadedApkName);
+      if(!apk.exists()){toast("Downloaded update file not found");return;}
+      Uri uri=FileProvider.getUriForFile(this,getPackageName()+".fileprovider",apk);
+      Intent in=new Intent(Intent.ACTION_VIEW);in.setDataAndType(uri,"application/vnd.android.package-archive");
+      in.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_ACTIVITY_NEW_TASK);startActivity(in);
+    }catch(Exception e){toast("Update install open failed: "+e.getMessage());}
+  }
+
   public class PrinterBridge {
     @JavascriptInterface public boolean available(){return bt!=null;}
     @JavascriptInterface public String printerName(){try{return socket!=null&&socket.isConnected()?socket.getRemoteDevice().getName():"Android Bluetooth Printer";}catch(Exception e){return "Android Bluetooth Printer";}}
@@ -71,6 +142,7 @@ public class MainActivity extends Activity {
         runOnUiThread(()->ensurePermissionThenChoose());
       }catch(Exception e){toast("Print data error");}
     }
+    @JavascriptInterface public void checkUpdate(){runOnUiThread(()->checkForAppUpdate(true));}
     @JavascriptInterface public void shareFile(String base64,String filename,String mime){
       runOnUiThread(()->{
         try{
@@ -139,5 +211,5 @@ public class MainActivity extends Activity {
       pendingWebPermissionRequest=null;
     }
   }
-  @Override protected void onDestroy(){disconnectSocket();if(web!=null)web.destroy();super.onDestroy();}
+  @Override protected void onDestroy(){try{unregisterReceiver(updateReceiver);}catch(Exception ignored){}disconnectSocket();if(web!=null)web.destroy();super.onDestroy();}
 }

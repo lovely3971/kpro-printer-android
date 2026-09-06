@@ -1,0 +1,9 @@
+KANAKKU PULLA PRO V8 CLEAN
+Base: exact working V7 fixed-key project.
+Changes only:
+1) Activation flow protected against duplicate submit and no longer waits for GPS/location logging.
+2) In-app update check/download/install flow added.
+3) versionCode 6, same applicationId and same V7 signing keystore.
+4) Existing V7 camera scanner code is preserved unchanged.
+5) Existing billing, Bluetooth printer, bill print and barcode-label rendering are preserved unchanged.
+6) gradle.properties includes android.useAndroidX=true.

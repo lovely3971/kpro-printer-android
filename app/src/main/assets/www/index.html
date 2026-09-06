@@ -4452,7 +4452,27 @@ function kpRenderTrialTimer(){
 }
 setInterval(kpRenderTrialTimer,1000);
 
-async function activateDevice(){const input=document.getElementById('activationCode');const code=input.value.trim();const field=document.getElementById('codeField');if(!code){if(field){field.classList.add('shake');setTimeout(()=>field.classList.remove('shake'),400)}toast('Please enter your Activation Code');return}const s=loadState();const deviceId=ensureDeviceId();toast('Checking activation code...');const {data,error}=await kpSb.rpc('verify_activation',{p_code:code,p_device_id:deviceId});if(error||!data||!data.ok){if(field){field.classList.add('shake');setTimeout(()=>field.classList.remove('shake'),400)}toast((data&&data.error)||'Activation failed');return}s.activated=true;s.activationCode=code;s.deviceId=deviceId;kpApplyActivationMeta(s,data);saveState(s);try{localStorage.setItem('kp_pro_device_activated_v1','1')}catch(e){};await kpRecordLoginLocation();refreshActivationUI();kpRenderTrialTimer();toast('Device activated successfully');setTimeout(()=>kpRouteBoundDevice(),450)}
+let kpActivationBusy=false;
+async function activateDevice(){
+  const input=document.getElementById('activationCode'),field=document.getElementById('codeField');
+  if(kpActivationBusy)return;
+  const code=(input&&input.value?input.value:'').trim();
+  if(!code){if(field){field.classList.add('shake');setTimeout(()=>field.classList.remove('shake'),400)}toast('Please enter your Activation Code');return}
+  kpActivationBusy=true;
+  try{
+    const s=loadState(),deviceId=ensureDeviceId();
+    toast('Checking activation code...');
+    const {data,error}=await kpSb.rpc('verify_activation',{p_code:code,p_device_id:deviceId});
+    if(error||!data||!data.ok){if(field){field.classList.add('shake');setTimeout(()=>field.classList.remove('shake'),400)}toast((data&&data.error)||'Activation failed');return}
+    s.activated=true;s.activationCode=code;s.deviceId=deviceId;kpApplyActivationMeta(s,data);saveState(s);
+    try{localStorage.setItem('kp_pro_device_activated_v1','1')}catch(e){}
+    refreshActivationUI();kpRenderTrialTimer();toast('Device activated successfully');
+    // Location logging is non-blocking: GPS/network permission can never hold the activation screen.
+    setTimeout(()=>{try{kpRecordLoginLocation()}catch(e){}},0);
+    setTimeout(()=>kpRouteBoundDevice(),250);
+  }catch(e){toast('Activation failed — internet check pannunga')}
+  finally{kpActivationBusy=false}
+}
 
 function logoutDevice(){
   // Device activation is permanent until the backend explicitly disables,
