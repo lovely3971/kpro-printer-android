@@ -1,4 +1,4 @@
-name: Build Kanakku Pulla PRO APK
+name: Build Kanakku Pulla PRO V5 APK
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up Java 17
@@ -25,18 +25,21 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Unzip Final V4 Project
+      - name: Extract V5 Project
         run: |
           rm -rf android-build
           mkdir android-build
-          unzip -q KANAKKU_PULLA_PRO_ANDROID_FINAL_FIXED_V4.zip -d android-build
+          unzip -q KANAKKU_PULLA_PRO_ANDROID_FINAL_FIXED_V5.zip -d android-build
+          echo "=== Extracted files ==="
+          find android-build -maxdepth 2 -type f | head -50
 
       - name: Build APK
-        working-directory: android-build
-        run: gradle :app:assembleDebug --stacktrace
+        run: |
+          cd android-build
+          gradle :app:assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: KANAKKU-PULLA-PRO-ANDROID-V4-APK
+          name: KANAKKU-PULLA-PRO-V5-APK
           path: android-build/app/build/outputs/apk/debug/app-debug.apk
