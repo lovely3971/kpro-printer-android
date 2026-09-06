@@ -1,4 +1,4 @@
-name: Build KPRO Printer APK
+name: Build Kanakku Pulla PRO APK
 
 on:
   workflow_dispatch:
@@ -25,18 +25,18 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Unzip Android Project
+      - name: Unzip Final Kanakku Pulla PRO Project
         run: |
           rm -rf android-build
           mkdir android-build
           unzip -q KANAKKU_PULLA_PRO_ANDROID_APK_FINAL_PROJECT.zip -d android-build
 
-      - name: Build APK
+      - name: Build Kanakku Pulla PRO APK
         working-directory: android-build/KANAKKU_PULLA_PRO_ANDROID_APK_FINAL_PROJECT
         run: gradle :app:assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: KPRO-Printer-Android-Debug-APK
-         path: android-build/KANAKKU_PULLA_PRO_ANDROID_APK_FINAL_PROJECT/app/build/outputs/apk/debug/app-debug.apk
+          name: KANAKKU-PULLA-PRO-ANDROID-APK
+          path: android-build/KANAKKU_PULLA_PRO_ANDROID_APK_FINAL_PROJECT/app/build/outputs/apk/debug/app-debug.apk
