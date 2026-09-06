@@ -2,9 +2,6 @@ name: Build Kanakku Pulla PRO V7 APK
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 jobs:
   build:
@@ -25,19 +22,30 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract V7 Project
+      - name: Find and Extract V7 Project
         run: |
+          echo "Files in repo:"
+          ls -la
+
+          ZIP_FILE=$(find . -maxdepth 1 -type f -name 'KANAKKU_PULLA_PRO_ANDROID_FINAL_FIXED_V7*.zip' | head -n 1)
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ERROR: V7 ZIP not found"
+            exit 1
+          fi
+
+          echo "Using ZIP: $ZIP_FILE"
+
           rm -rf android-build
           mkdir android-build
-          unzip -q "KANAKKU_PULLA_PRO_ANDROID_FINAL_FIXED_V7(1).zip" -d android-build
+          unzip -q "$ZIP_FILE" -d android-build
 
-      - name: Verify Project
+      - name: Verify Android Project
         run: |
           test -f android-build/settings.gradle
           test -f android-build/build.gradle
           test -f android-build/app/build.gradle
-          test -f android-build/app/src/main/AndroidManifest.xml
-          echo "V7 Android project verified"
+          echo "Android project verified successfully"
 
       - name: Build APK
         working-directory: android-build
