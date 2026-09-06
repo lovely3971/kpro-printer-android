@@ -1,4 +1,4 @@
-name: Build Kanakku Pulla PRO V5 APK
+name: Build Kanakku Pulla PRO V7 APK
 
 on:
   workflow_dispatch:
@@ -20,26 +20,31 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle
+      - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Extract V5 Project
+      - name: Extract V7 Project
         run: |
           rm -rf android-build
           mkdir android-build
-          unzip -q KANAKKU_PULLA_PRO_ANDROID_FINAL_FIXED_V5.zip -d android-build
-          echo "=== Extracted files ==="
-          find android-build -maxdepth 2 -type f | head -50
+          unzip -q "KANAKKU_PULLA_PRO_ANDROID_FINAL_FIXED_V7(1).zip" -d android-build
+
+      - name: Verify Project
+        run: |
+          test -f android-build/settings.gradle
+          test -f android-build/build.gradle
+          test -f android-build/app/build.gradle
+          test -f android-build/app/src/main/AndroidManifest.xml
+          echo "V7 Android project verified"
 
       - name: Build APK
-        run: |
-          cd android-build
-          gradle :app:assembleDebug --stacktrace
+        working-directory: android-build
+        run: gradle :app:assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: KANAKKU-PULLA-PRO-V5-APK
+          name: KANAKKU-PULLA-PRO-V7-APK
           path: android-build/app/build/outputs/apk/debug/app-debug.apk
