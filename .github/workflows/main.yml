@@ -22,18 +22,34 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Verify Android Project
+      - name: Find V7 ZIP and Extract
         run: |
-          test -f settings.gradle
-          test -f build.gradle
-          test -f app/build.gradle
-          echo "Android project verified"
+          ZIP_FILE=$(find . -maxdepth 1 -type f -name 'KANAKKU_PULLA_PRO_ANDROID_FINAL_FIXED_V7*.zip' | sort | tail -n 1)
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "V7 ZIP not found"
+            exit 1
+          fi
+
+          echo "Using: $ZIP_FILE"
+
+          rm -rf android-build
+          mkdir android-build
+          unzip -q "$ZIP_FILE" -d android-build
+
+      - name: Verify Project
+        run: |
+          test -f android-build/settings.gradle
+          test -f android-build/build.gradle
+          test -f android-build/app/build.gradle
+          echo "Project verified"
 
       - name: Build APK
+        working-directory: android-build
         run: gradle :app:assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: KANAKKU-PULLA-PRO-V7-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: android-build/app/build/outputs/apk/debug/app-debug.apk
