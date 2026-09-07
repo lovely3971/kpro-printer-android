@@ -7,8 +7,8 @@ android {
         applicationId 'com.lovelyshoppe.kanakkupullapro'
         minSdk 23
         targetSdk 35
-        versionCode 8
-        versionName '1.7.0-v10-root-fixes'
+        versionCode 9
+        versionName '1.8.0-v11-four-root-fixes'
     }
     signingConfigs {
         debug {

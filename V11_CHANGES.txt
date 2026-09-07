@@ -1,0 +1,9 @@
+V11 FOUR ROOT FIXES
+
+1. Update loop: version-specific GitHub release APK asset, strict remote > installed comparison, downloaded APK version validation before install.
+2. Activation LOGOUT bug: Android WebView autofill disabled at native level; activation input remains autocomplete-off.
+3. Shop selector duplicate icons: interactive tab overlays are fully transparent; original shop-design.webp cards remain the only visible cards/icons.
+4. Edit/Cancel restock: robust product matching by ID/code/barcode/SKU/name aliases, unresolved items block unsafe stock changes, local persistence plus direct Supabase cloud save trigger.
+
+VersionCode: 9
+VersionName: 1.8.0-v11-four-root-fixes
