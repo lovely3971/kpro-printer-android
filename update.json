@@ -1,6 +1,6 @@
 {
-  "versionCode": 13,
-  "versionName": "Update Install + Login Icons Root Fix",
+  "versionCode": 14,
+  "versionName": "V14 Login Tab Icons + Auto Update Test",
   "apkUrl": "https://github.com/lovely3971/kpro-printer-android/releases/download/latest/app-debug.apk",
-  "notes": "Fixes update install resume across app switching/settings, FileProvider access to downloaded APK, stale APK blocking, and refreshes the Login/Create Shop/Join Shop design asset so icons are not blank."
+  "notes": "V14 makes the Login, Create Shop and Join Shop SVG icons and labels render visibly. Auto-update/install logic from V13 is preserved unchanged for the V13 to V14 real update test."
 }
