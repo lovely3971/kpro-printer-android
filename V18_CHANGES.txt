@@ -1,0 +1,1 @@
+V18: PeriPeri Bluetooth TSPL bitmap polarity fix only. White label background, black barcode/text. Existing billing, fixed-design, auto-restock and other flows unchanged.
