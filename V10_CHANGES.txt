@@ -1,0 +1,11 @@
+KANAKKU PULLA PRO V10
+
+Targeted root fixes only:
+1. Activation code uses non-password autofill-safe rendering so Android credential UI cannot cover/replace Logout area.
+2. Activation artwork is exactly centered on Android mobile screens.
+3. Login/Create/Join selector uses only the original artwork icons/cards; transparent tap zones remove duplicate icons.
+4. Edit Bill stock adjustment resolves products by ID with code/SKU/name fallback and restores removed/reduced quantities.
+5. Cancel Bill restores all tracked quantities once and marks stockApplied=false to prevent double-restock.
+6. Stock changes persist immediately to local storage and request parent cloud sync.
+
+Scanner, Bluetooth printer, barcode/label design and auto-update mechanism were not changed.

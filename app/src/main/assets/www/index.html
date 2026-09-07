@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 
 <style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#050805;font-family:Arial,sans-serif}body{display:flex;justify-content:center;align-items:flex-start}.screen{display:none;width:100%;max-width:1024px;position:relative}.screen.active{display:block}.design{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}.hot{position:absolute;border:0;background:transparent;cursor:pointer;padding:0;-webkit-appearance:none;appearance:none}.realtab{-webkit-appearance:none;appearance:none;outline:none;-webkit-tap-highlight-color:transparent}#codeFieldBg{position:absolute;left:19%;top:48%;width:46%;height:7%;background:#040704;z-index:3}#activationCode{position:absolute;left:8.1%;top:47.4%;width:83.3%;height:8.0%;border:0;outline:0;background:transparent;color:white;font-size:clamp(15px,3.1vw,31px);padding:0 12% 0 13%;z-index:4}#activationCode::placeholder{color:#8fa08f}#codeField{position:absolute;inset:0;pointer-events:none}#eyeBtn{left:80%;top:48.2%;width:10%;height:6.5%;z-index:6}#actBtn{left:8%;top:57.4%;width:83.5%;height:8.2%;z-index:5}#logoutBtn{left:8%;top:67.3%;width:83.5%;height:8.5%;z-index:5}#screenShop{background:white}#tabsCover{position:absolute;left:6%;top:44.76%;width:88%;height:13.65%;background:#fff;z-index:3}.realtab{position:absolute;top:46.29%;width:26%;height:11.79%;z-index:4;border-radius:11%;border:1.5px solid #e3ece0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4%;font-family:Arial,sans-serif;color:#183318;font-weight:700;transition:.15s}#tab-login{left:8%}#tab-create{left:36.5%}#tab-join{left:65%}.realtab svg{width:22%;height:auto;color:#2b5a2b}.realtab span{font-size:clamp(9px,2.2vw,14px)}.realtab.active{background:#eef8e2;border-color:#a9d97a}#oldCtaCover{position:absolute;left:0;top:57.6%;width:100%;height:11.3%;background:#fff;z-index:3;pointer-events:none}#realBackBtn{position:absolute;left:8%;top:59.5%;width:83%;height:7.5%;z-index:4;border-radius:14px;background:#0a0a0a;border:none;display:flex;align-items:center;justify-content:center;gap:3%;cursor:pointer;-webkit-appearance:none;appearance:none;outline:none;-webkit-tap-highlight-color:transparent}#realBackBtn .circ{width:9%;aspect-ratio:1;border-radius:50%;border:2px solid #a9d97a;display:flex;align-items:center;justify-content:center;flex:none}#realBackBtn .circ svg{width:60%;height:60%;color:#a9d97a}#realBackBtn span{color:#fff;font-family:Arial,sans-serif;font-weight:700;font-size:clamp(15px,3.4vw,24px)}#backAct{left:8%;top:63.2%;width:83%;height:7.2%}.chosen{outline:2px solid rgba(130,220,0,.35);border-radius:18px}#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:11px 18px;border-radius:10px;display:none;z-index:99;max-width:88vw;text-align:center}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#050805;font-family:Arial,sans-serif}body{display:flex;justify-content:center;align-items:flex-start}.screen{display:none;width:100%;max-width:1024px;position:relative}.screen.active{display:block}.design{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}.hot{position:absolute;border:0;background:transparent;cursor:pointer;padding:0;-webkit-appearance:none;appearance:none}.realtab{-webkit-appearance:none;appearance:none;outline:none;-webkit-tap-highlight-color:transparent}#codeFieldBg{position:absolute;left:19%;top:48%;width:46%;height:7%;background:#040704;z-index:3}#activationCode{position:absolute;left:8.1%;top:47.4%;width:83.3%;height:8.0%;border:0;outline:0;background:transparent;color:white;font-size:clamp(15px,3.1vw,31px);padding:0 12% 0 13%;z-index:4}#activationCode::placeholder{color:#8fa08f}#codeField{position:absolute;inset:0;pointer-events:none}#eyeBtn{left:80%;top:48.2%;width:10%;height:6.5%;z-index:6}#actBtn{left:8%;top:57.4%;width:83.5%;height:8.2%;z-index:5}#logoutBtn{left:8%;top:67.3%;width:83.5%;height:8.5%;z-index:5}#screenShop{background:white}#tabsCover{display:none!important}.realtab{position:absolute;top:45.45%;width:26.4%;height:11.65%;z-index:4;border:0!important;background:transparent!important;box-shadow:none!important;display:block;font-size:0;color:transparent;cursor:pointer}.realtab svg,.realtab span{display:none!important}#tab-login{left:8.1%}#tab-create{left:36.8%}#tab-join{left:65.4%}.realtab.active{background:transparent!important;border:0!important;outline:none!important}#oldCtaCover{position:absolute;left:0;top:57.6%;width:100%;height:11.3%;background:#fff;z-index:3;pointer-events:none}#realBackBtn{position:absolute;left:8%;top:59.5%;width:83%;height:7.5%;z-index:4;border-radius:14px;background:#0a0a0a;border:none;display:flex;align-items:center;justify-content:center;gap:3%;cursor:pointer;-webkit-appearance:none;appearance:none;outline:none;-webkit-tap-highlight-color:transparent}#realBackBtn .circ{width:9%;aspect-ratio:1;border-radius:50%;border:2px solid #a9d97a;display:flex;align-items:center;justify-content:center;flex:none}#realBackBtn .circ svg{width:60%;height:60%;color:#a9d97a}#realBackBtn span{color:#fff;font-family:Arial,sans-serif;font-weight:700;font-size:clamp(15px,3.4vw,24px)}#backAct{left:8%;top:63.2%;width:83%;height:7.2%}.chosen{outline:2px solid rgba(130,220,0,.35);border-radius:18px}#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:11px 18px;border-radius:10px;display:none;z-index:99;max-width:88vw;text-align:center}
 
 /* ===== USER REQUESTED TAB COLOURS + WORKING ACTION CTA ===== */
 #tab-login{background:linear-gradient(180deg,#98ef39,#39a80b)!important;border-color:#5ec51d!important;color:#082900!important}
@@ -264,6 +264,23 @@ html.kp-native-android body.kp-activation-screen #screenActivate.active{
   max-width:1024px;
   margin-top:0!important;
 }
+
+/* V10: Android activation screen — exact visual centering and no password-manager overlay leakage. */
+#activationCode.kp-code-hidden{-webkit-text-security:disc;}
+#activationCode.kp-code-visible{-webkit-text-security:none;}
+html.kp-native-android body.kp-activation-screen{
+  padding:0!important;min-height:100dvh!important;height:100dvh!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;
+}
+html.kp-native-android body.kp-activation-screen #screenActivate.active{
+  position:relative!important;display:block!important;
+  width:min(100vw,calc(100dvh * 0.6666667))!important;
+  height:auto!important;aspect-ratio:2 / 3!important;
+  max-width:none!important;max-height:100dvh!important;
+  margin:auto!important;flex:0 0 auto!important;overflow:hidden!important;
+}
+html.kp-native-android body.kp-activation-screen #screenActivate .design{width:100%!important;height:100%!important;object-fit:contain!important;}
+
 </style>
 <script>try{if(window.KPRO_NATIVE)document.documentElement.classList.add('kp-native-android')}catch(e){}</script>
 </head><body>
@@ -279,7 +296,7 @@ html.kp-native-android body.kp-activation-screen #screenActivate.active{
 </div>
 <div class="screen" id="screenActivate">
 <img class="design" src="activate-design.webp" alt="Kanakku Pulla PRO Activation">
-<div id="codeField"><div id="codeFieldBg"></div></div><input type="password" id="activationCode" placeholder="Enter Activation Code" autocomplete="off">
+<div id="codeField"><div id="codeFieldBg"></div></div><input type="text" id="activationCode" class="kp-code-hidden" placeholder="Enter Activation Code" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" inputmode="text" data-form-type="other">
 <button class="hot" id="eyeBtn" onclick="toggleCodeVisibility()" aria-label="Show code"></button>
 <button class="hot" id="actBtn" onclick="activateDevice()" aria-label="Activate"></button>
 <button class="hot" id="logoutBtn" onclick="logoutDevice()" aria-label="Logout"></button>
@@ -2438,7 +2455,7 @@ function saveBill(status){
     customer:custName, mobile:document.getElementById('bCustMobile').value.trim(),
     address:document.getElementById('bCustAddress').value.trim(), gstin:gstin,
     state:document.getElementById('bCustState').value, payment:document.getElementById('bPayment').value,
-    items:validRows.map(r=>({productId:r.productId,name:(DB.products.find(p=>p.id===r.productId)||{}).name,qty:r.qty,rate:r.rate,tax:r.tax})),
+    items:validRows.map(r=>{const p=DB.products.find(x=>x.id===r.productId)||{};return {productId:r.productId,productCode:p.code||'',productSku:p.sku||'',name:p.name||'',qty:r.qty,rate:r.rate,tax:r.tax};}),
     subtotal, totalTax, discount, discountType, discountValue, grandTotal:grand, status, stockApplied:status!=='Draft', createdAt:new Date().toISOString()
   };
   if(status!=='Draft'){
@@ -2491,14 +2508,16 @@ async function cancelBill(id){
   const shouldRestock = b.status!=='Draft' && b.stockApplied!==false;
   if(!(await appConfirm(shouldRestock?'Cancel this bill and restock items?':'Cancel this draft bill?'))) return;
   if(shouldRestock){
-    const restore=qtyMap(b.items);
-    Object.keys(restore).forEach(pid=>{ const p=DB.products.find(x=>x.id===pid); if(p) p.stock=Number(p.stock||0)+Number(restore[pid]||0); });
+    const restore=kpStockQtyMap(b.items);
+    Object.keys(restore).forEach(pid=>{
+      const p=DB.products.find(x=>String(x.id)===String(pid));
+      if(p)p.stock=Number(p.stock||0)+Number(restore[pid]||0);
+    });
   }
   b.stockApplied=false;
   b.status='Cancelled';
   b.cancelledAt=new Date().toISOString();
-  save();
-  try{kpCloudSave()}catch(e){}
+  kpPersistStockNow();
   refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills();
   toast(shouldRestock?'Bill cancelled and stock restored':'Draft cancelled');
 }
@@ -2595,7 +2614,34 @@ function renderBillEditRows(){
   const subtotal=billEditState.items.reduce((s,i)=>s+Number(i.qty||0)*Number(i.rate||0),0), tax=billEditState.items.reduce((s,i)=>s+Number(i.qty||0)*Number(i.rate||0)*Number(i.tax||0)/100,0), discount=Math.max(0,Number(document.getElementById('beDiscount')?.value||0)), grand=subtotal+tax-discount;
   document.getElementById('billEditSubtotal').textContent=fmt(subtotal); document.getElementById('billEditTax').textContent=fmt(tax); document.getElementById('billEditGrand').textContent=fmt(grand);
 }
-function qtyMap(items){ const m={}; (items||[]).forEach(i=>{ if(i.productId) m[i.productId]=(m[i.productId]||0)+Number(i.qty||0); }); return m; }
+function kpNormProductKey(v){return String(v||'').trim().toLowerCase();}
+function kpResolveBillProduct(item){
+  if(!item)return null;
+  let p=null;
+  if(item.productId)p=DB.products.find(x=>String(x.id)===String(item.productId));
+  if(!p && item.productCode)p=DB.products.find(x=>kpNormProductKey(x.code)===kpNormProductKey(item.productCode));
+  if(!p && item.productSku)p=DB.products.find(x=>kpNormProductKey(x.sku)===kpNormProductKey(item.productSku));
+  if(!p && item.name){
+    const matches=DB.products.filter(x=>kpNormProductKey(x.name)===kpNormProductKey(item.name));
+    if(matches.length===1)p=matches[0];
+  }
+  return p||null;
+}
+function kpStockQtyMap(items){
+  const m={};
+  (items||[]).forEach(i=>{
+    const p=kpResolveBillProduct(i);
+    if(!p)return;
+    const key=String(p.id);
+    m[key]=(m[key]||0)+Math.max(0,Number(i.qty||0));
+  });
+  return m;
+}
+function qtyMap(items){return kpStockQtyMap(items);}
+function kpPersistStockNow(){
+  save();
+  try{if(window.parent&&window.parent!==window&&typeof window.parent.kpCloudSave==='function')window.parent.kpCloudSave();}catch(e){}
+}
 function saveEditedBill(){
   if(!billEditState) return;
   const bill=DB.bills.find(b=>b.id===billEditState.billId); if(!bill) return;
@@ -2607,9 +2653,17 @@ function saveEditedBill(){
   if(!items.length){ toast('Bill must contain at least one product'); return; }
   const stockTracked = bill.status!=='Draft' && bill.status!=='Cancelled' && bill.stockApplied!==false;
   if(stockTracked){
-    const oldMap=qtyMap(billEditState.originalItems), newMap=qtyMap(items), ids=new Set([...Object.keys(oldMap),...Object.keys(newMap)]);
-    for(const pid of ids){ const diff=(newMap[pid]||0)-(oldMap[pid]||0); if(diff>0){ const p=DB.products.find(x=>x.id===pid); if(p && Number(p.stock)<diff){ toast('Not enough stock for '+p.name); return; } } }
-    for(const pid of ids){ const diff=(newMap[pid]||0)-(oldMap[pid]||0), p=DB.products.find(x=>x.id===pid); if(!p) continue; if(diff>0) p.stock=Number(p.stock)-diff; else if(diff<0) p.stock=Number(p.stock)+Math.abs(diff); }
+    const oldMap=kpStockQtyMap(billEditState.originalItems), newMap=kpStockQtyMap(items), ids=new Set([...Object.keys(oldMap),...Object.keys(newMap)]);
+    for(const pid of ids){
+      const diff=(newMap[pid]||0)-(oldMap[pid]||0),p=DB.products.find(x=>String(x.id)===String(pid));
+      if(diff>0 && p && Number(p.stock)<diff){toast('Not enough stock for '+p.name);return;}
+    }
+    for(const pid of ids){
+      const diff=(newMap[pid]||0)-(oldMap[pid]||0),p=DB.products.find(x=>String(x.id)===String(pid));
+      if(!p)continue;
+      if(diff>0)p.stock=Math.max(0,Number(p.stock||0)-diff);
+      else if(diff<0)p.stock=Number(p.stock||0)+Math.abs(diff);
+    }
   }
   bill.customer=customer;
   bill.mobile=(document.getElementById('beMobile').value||'').trim();
@@ -2620,11 +2674,10 @@ function saveEditedBill(){
   bill.dueDate=document.getElementById('beDueDate').value||'';
   bill.payment=document.getElementById('bePayment').value||bill.payment||'Cash';
   bill.discount=Math.max(0,Number(document.getElementById('beDiscount').value||0));
-  bill.items=items.map(i=>({...i,name:i.name||(DB.products.find(p=>p.id===i.productId)||{}).name}));
+  bill.items=items.map(i=>{const p=kpResolveBillProduct(i)||{};return {...i,productId:p.id||i.productId,productCode:p.code||i.productCode||'',productSku:p.sku||i.productSku||'',name:i.name||p.name||'Product'};});
   bill.subtotal=items.reduce((s,i)=>s+Number(i.qty)*Number(i.rate),0); bill.totalTax=items.reduce((s,i)=>s+Number(i.qty)*Number(i.rate)*Number(i.tax)/100,0); bill.grandTotal=bill.subtotal+bill.totalTax-Number(bill.discount||0); bill.updatedAt=new Date().toISOString();
   if(stockTracked) bill.stockApplied=true;
-  save();
-  try{kpCloudSave()}catch(e){} refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills(); closeBillEditor(); toast('Bill details updated and stock adjusted');
+  kpPersistStockNow(); refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills(); closeBillEditor(); toast('Bill details updated and stock adjusted');
 }
 
 /* ============ PURCHASES ============ */
@@ -4336,7 +4389,10 @@ function kpBackFromShop(){
 
 function toggleCodeVisibility(){
   const input=document.getElementById('activationCode');
-  input.type = input.type==='password' ? 'text' : 'password';
+  if(!input)return;
+  const visible=input.classList.toggle('kp-code-visible');
+  input.classList.toggle('kp-code-hidden',!visible);
+  input.setAttribute('aria-label',visible?'Activation code visible':'Activation code hidden');
 }
 
 
