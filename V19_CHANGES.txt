@@ -1,0 +1,5 @@
+V19 alignment-only root fix
+- Keeps V18 PeriPeri white-label / black-print TSPL polarity unchanged.
+- Changes only Bluetooth label canvas rasterization: CSS millimetres are rendered directly at 203-DPI printer density instead of scale:4 then downsampling.
+- Goal: live preview alignment maps 1:1 to physical label output.
+- Billing, auto-restock, fixed design, barcode generator and other flows unchanged.
