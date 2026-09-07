@@ -256,6 +256,14 @@ html.kp-native-android #screenStaffLogin,
 html.kp-native-android #screenCreateShop,
 html.kp-native-android #screenJoinShop{box-sizing:border-box;min-height:calc(100dvh - env(safe-area-inset-top,0px));}
 html.kp-native-android #kpBootGate{padding-top:env(safe-area-inset-top,0px);box-sizing:border-box}
+/* V9: image-backed screens must size to their artwork, otherwise absolute controls drift. */
+html.kp-native-android #screenActivate,html.kp-native-android #screenShop{min-height:0!important;}
+html.kp-native-android body.kp-activation-screen{align-items:center!important;min-height:100dvh!important;}
+html.kp-native-android body.kp-activation-screen #screenActivate.active{
+  width:min(100%,calc((100dvh - env(safe-area-inset-top,0px)) * 0.6666667));
+  max-width:1024px;
+  margin-top:0!important;
+}
 </style>
 <script>try{if(window.KPRO_NATIVE)document.documentElement.classList.add('kp-native-android')}catch(e){}</script>
 </head><body>
@@ -2431,7 +2439,7 @@ function saveBill(status){
     address:document.getElementById('bCustAddress').value.trim(), gstin:gstin,
     state:document.getElementById('bCustState').value, payment:document.getElementById('bPayment').value,
     items:validRows.map(r=>({productId:r.productId,name:(DB.products.find(p=>p.id===r.productId)||{}).name,qty:r.qty,rate:r.rate,tax:r.tax})),
-    subtotal, totalTax, discount, discountType, discountValue, grandTotal:grand, status, createdAt:new Date().toISOString()
+    subtotal, totalTax, discount, discountType, discountValue, grandTotal:grand, status, stockApplied:status!=='Draft', createdAt:new Date().toISOString()
   };
   if(status!=='Draft'){
     validRows.forEach(r=>{ const p=DB.products.find(x=>x.id===r.productId); if(p) p.stock=Math.max(0,Number(p.stock)-Number(r.qty)); });
@@ -2478,10 +2486,21 @@ function viewBill(id){
   alert(`Invoice: ${b.invoiceNo}\nCustomer: ${b.customer}\nDate: ${b.date}\nItems: ${b.items.map(i=>i.name+' x'+i.qty).join(', ')}\nGrand Total: ${fmt(b.grandTotal)}\nStatus: ${b.status}`);
 }
 async function cancelBill(id){
-  if(!(await appConfirm('Cancel this bill and restock items?'))) return;
   const b=DB.bills.find(x=>x.id===id);
-  b.items.forEach(it=>{ const p=DB.products.find(x=>x.id===it.productId); if(p) p.stock=Number(p.stock)+Number(it.qty); });
-  b.status='Cancelled'; save(); refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills();
+  if(!b || b.status==='Cancelled') return;
+  const shouldRestock = b.status!=='Draft' && b.stockApplied!==false;
+  if(!(await appConfirm(shouldRestock?'Cancel this bill and restock items?':'Cancel this draft bill?'))) return;
+  if(shouldRestock){
+    const restore=qtyMap(b.items);
+    Object.keys(restore).forEach(pid=>{ const p=DB.products.find(x=>x.id===pid); if(p) p.stock=Number(p.stock||0)+Number(restore[pid]||0); });
+  }
+  b.stockApplied=false;
+  b.status='Cancelled';
+  b.cancelledAt=new Date().toISOString();
+  save();
+  try{kpCloudSave()}catch(e){}
+  refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills();
+  toast(shouldRestock?'Bill cancelled and stock restored':'Draft cancelled');
 }
 async function deleteBill(id){
   if(!(await appConfirm('Delete this bill permanently?'))) return;
@@ -2586,7 +2605,7 @@ function saveEditedBill(){
   if(gstin && !isValidGSTIN(gstin)){ toast('Enter a valid 15-character GSTIN'); document.getElementById('beGSTIN').focus(); return; }
   const items=billEditState.items.filter(i=>i.productId && Number(i.qty)>0);
   if(!items.length){ toast('Bill must contain at least one product'); return; }
-  const stockTracked = bill.status!=='Draft' && bill.status!=='Cancelled';
+  const stockTracked = bill.status!=='Draft' && bill.status!=='Cancelled' && bill.stockApplied!==false;
   if(stockTracked){
     const oldMap=qtyMap(billEditState.originalItems), newMap=qtyMap(items), ids=new Set([...Object.keys(oldMap),...Object.keys(newMap)]);
     for(const pid of ids){ const diff=(newMap[pid]||0)-(oldMap[pid]||0); if(diff>0){ const p=DB.products.find(x=>x.id===pid); if(p && Number(p.stock)<diff){ toast('Not enough stock for '+p.name); return; } } }
@@ -2603,7 +2622,9 @@ function saveEditedBill(){
   bill.discount=Math.max(0,Number(document.getElementById('beDiscount').value||0));
   bill.items=items.map(i=>({...i,name:i.name||(DB.products.find(p=>p.id===i.productId)||{}).name}));
   bill.subtotal=items.reduce((s,i)=>s+Number(i.qty)*Number(i.rate),0); bill.totalTax=items.reduce((s,i)=>s+Number(i.qty)*Number(i.rate)*Number(i.tax)/100,0); bill.grandTotal=bill.subtotal+bill.totalTax-Number(bill.discount||0); bill.updatedAt=new Date().toISOString();
-  save(); refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills(); closeBillEditor(); toast('Bill details updated and stock adjusted');
+  if(stockTracked) bill.stockApplied=true;
+  save();
+  try{kpCloudSave()}catch(e){} refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills(); closeBillEditor(); toast('Bill details updated and stock adjusted');
 }
 
 /* ============ PURCHASES ============ */
@@ -4501,6 +4522,7 @@ function kpHideBootGate(){
 
 function showScreen(name){
   kpHideBootGate();
+  document.body.classList.toggle('kp-activation-screen', name==='activate');
   document.getElementById('screenActivate').classList.toggle('active', name==='activate');
   document.getElementById('screenShop').classList.toggle('active', name==='shop');
   document.getElementById('screenCreateShop').classList.toggle('active', name==='createshop');

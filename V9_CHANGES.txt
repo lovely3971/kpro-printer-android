@@ -1,0 +1,20 @@
+KANAKKU PULLA PRO - V9 TARGETED FIXES
+
+Base: uploaded V8 repository source (versionCode 6)
+Version: versionCode 7 / 1.6.0-v9-targeted-fixes
+
+Only targeted changes:
+1. Activation screen artwork/control coordinate fix + exact mobile vertical centering.
+   - Removes the Android min-height mismatch that shifted the real activation input down onto the Logout area.
+2. Shop selector artwork/control coordinate fix.
+   - Removes the Android min-height mismatch responsible for duplicated/misaligned Login/Create Shop/Join Shop controls.
+3. Edit Bill stock difference handling hardened.
+   - Removed/reduced paid-bill quantities return to stock on Save Changes.
+   - Increased quantities consume only the additional stock and validate availability first.
+4. Cancel Bill restock hardened.
+   - Paid/non-draft bills restore sold quantities once.
+   - Already-cancelled bills cannot double-restock.
+   - Draft cancellation does not incorrectly add stock.
+5. update.json bumped to versionCode 7 for V8 -> V9 in-app update detection.
+
+Preserved: existing scanner, Bluetooth/native printer code, barcode/label design/alignment, billing UI, auto-update mechanism, signing key.

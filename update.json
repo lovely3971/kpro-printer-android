@@ -1,6 +1,6 @@
 {
-  "versionCode": 6,
-  "versionName": "V8 Auto Update",
+  "versionCode": 7,
+  "versionName": "V9 Targeted Fixes",
   "apkUrl": "https://github.com/lovely3971/kpro-printer-android/releases/download/latest/app-debug.apk",
-  "notes": "Automatic update support added. Existing billing, barcode and Bluetooth printer flow preserved."
+  "notes": "V9: activation alignment/input overlay, shop selector duplicate icons, edit bill stock adjustment, and cancel bill restock fixes."
 }
