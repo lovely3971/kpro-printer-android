@@ -23,12 +23,9 @@ jobs:
         with:
           name: KANAKKU-PULLA-PRO-ANDROID-APK
           path: app/build/outputs/apk/debug/app-debug.apk
-      - name: Publish versioned APK for in-app updater
+      - name: Publish latest APK for in-app updater
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION_CODE=$(jq -r '.versionCode' update.json)
-          ASSET_NAME="kanakku-pulla-pro-v${VERSION_CODE}.apk"
-          cp app/build/outputs/apk/debug/app-debug.apk "$ASSET_NAME"
           gh release view latest >/dev/null 2>&1 || gh release create latest --title "Kanakku Pulla PRO Latest" --notes "Latest Android APK for in-app updates"
-          gh release upload latest "$ASSET_NAME" --clobber
+          gh release upload latest app/build/outputs/apk/debug/app-debug.apk --clobber

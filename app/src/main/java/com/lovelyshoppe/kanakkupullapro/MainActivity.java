@@ -19,7 +19,6 @@ import android.os.*;
 import android.provider.Settings;
 import android.util.Base64;
 import android.webkit.*;
-import android.view.View;
 import android.widget.Toast;
 import androidx.core.content.FileProvider;
 import java.io.File;
@@ -31,7 +30,7 @@ public class MainActivity extends Activity {
   private static final UUID SPP=UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
   private static final int REQ_BT=501, REQ_FILE=502, REQ_CAMERA=504;
   private static final String UPDATE_JSON_URL="https://raw.githubusercontent.com/lovely3971/kpro-printer-android/main/update.json";
-  private long updateDownloadId=-1; private int expectedUpdateVersion=-1; private String downloadedApkName="kanakku-pulla-pro-update.apk"; private boolean updateDialogVisible=false;
+  private long updateDownloadId=-1; private String downloadedApkName="kanakku-pulla-pro-update.apk";
   private WebView web; private BluetoothAdapter bt; private BluetoothSocket socket; private final Queue<byte[]> pendingQueue=new ArrayDeque<>(); private final Object printLock=new Object(); private boolean chooserOpen=false;
   private ValueCallback<Uri[]> fileCallback;
   private PermissionRequest pendingWebPermissionRequest;
@@ -41,9 +40,7 @@ public class MainActivity extends Activity {
     new Handler(Looper.getMainLooper()).postDelayed(()->checkForAppUpdate(false),2500);
   }
   private void setupWeb(){
-    web=new WebView(this);
-    if(Build.VERSION.SDK_INT>=26) web.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
-    setContentView(web);WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setDatabaseEnabled(true);s.setAllowFileAccess(true);s.setAllowContentAccess(true);s.setMediaPlaybackRequiresUserGesture(false);s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);s.setSaveFormData(false);
+    web=new WebView(this);setContentView(web);WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setDatabaseEnabled(true);s.setAllowFileAccess(true);s.setAllowContentAccess(true);s.setMediaPlaybackRequiresUserGesture(false);s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
     web.addJavascriptInterface(new PrinterBridge(),"KPRO_NATIVE");
     web.setWebViewClient(new WebViewClient(){@Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){Uri u=r.getUrl();String scheme=u.getScheme();if("http".equals(scheme)||"https".equals(scheme))return false;try{startActivity(new Intent(Intent.ACTION_VIEW,u));return true;}catch(Exception e){return false;}}});
     web.setWebChromeClient(new WebChromeClient(){
@@ -94,39 +91,24 @@ public class MainActivity extends Activity {
         StringBuilder sb=new StringBuilder();String line;while((line=br.readLine())!=null)sb.append(line);br.close();
         JSONObject j=new JSONObject(sb.toString());
         int latest=j.getInt("versionCode"); String name=j.optString("versionName","New update"); String apk=j.getString("apkUrl"); String notes=j.optString("notes","Latest improvements and fixes.");
-        long current=getInstalledVersionCode();
-        runOnUiThread(()->{if(latest>current)showUpdateDialog(latest,name,notes,apk);else if(manual)toast("App already up to date ✓");});
+        int current=getPackageManager().getPackageInfo(getPackageName(),0).versionCode;
+        runOnUiThread(()->{if(latest>current)showUpdateDialog(name,notes,apk);else if(manual)toast("App already up to date ✓");});
       }catch(Exception e){if(manual)runOnUiThread(()->toast("Update check failed — internet check pannunga"));}
       finally{if(con!=null)con.disconnect();}
     }).start();
   }
-  private long getInstalledVersionCode(){
-    try{
-      android.content.pm.PackageInfo p=getPackageManager().getPackageInfo(getPackageName(),0);
-      return Build.VERSION.SDK_INT>=28?p.getLongVersionCode():p.versionCode;
-    }catch(Exception e){return 0;}
-  }
-  private void showUpdateDialog(int latest,String name,String notes,String apkUrl){
-    if(updateDialogVisible)return;
-    updateDialogVisible=true;
-    AlertDialog dlg=new AlertDialog.Builder(this).setTitle("Kanakku Pulla PRO Update")
+  private void showUpdateDialog(String name,String notes,String apkUrl){
+    new AlertDialog.Builder(this).setTitle("Kanakku Pulla PRO Update")
       .setMessage(name+" available.\n\n"+notes)
-      .setPositiveButton("Update Now",(d,w)->downloadUpdate(latest,apkUrl))
-      .setNegativeButton("Later",null).create();
-    dlg.setOnDismissListener(d->updateDialogVisible=false);
-    dlg.show();
+      .setPositiveButton("Update Now",(d,w)->downloadUpdate(apkUrl))
+      .setNegativeButton("Later",null).show();
   }
-  private void downloadUpdate(int expectedVersion,String apkUrl){
+  private void downloadUpdate(String apkUrl){
     try{
-      expectedUpdateVersion=expectedVersion;
-      downloadedApkName="kanakku-pulla-pro-v"+expectedVersion+".apk";
-      File old=new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),downloadedApkName);
-      if(old.exists())old.delete();
       DownloadManager dm=(DownloadManager)getSystemService(DOWNLOAD_SERVICE);
       DownloadManager.Request r=new DownloadManager.Request(Uri.parse(apkUrl));
       r.setTitle("Kanakku Pulla PRO Update");r.setDescription("Downloading latest version…");
       r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-      r.setAllowedOverMetered(true);r.setAllowedOverRoaming(true);
       r.setDestinationInExternalFilesDir(this,Environment.DIRECTORY_DOWNLOADS,downloadedApkName);
       updateDownloadId=dm.enqueue(r);toast("Update downloading…");
     }catch(Exception e){toast("Update download failed");}
@@ -139,12 +121,6 @@ public class MainActivity extends Activity {
       }
       File apk=new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),downloadedApkName);
       if(!apk.exists()){toast("Downloaded update file not found");return;}
-      android.content.pm.PackageInfo archive=getPackageManager().getPackageArchiveInfo(apk.getAbsolutePath(),0);
-      if(archive==null){apk.delete();toast("Downloaded APK is invalid");return;}
-      long archiveVersion=Build.VERSION.SDK_INT>=28?archive.getLongVersionCode():archive.versionCode;
-      long currentVersion=getInstalledVersionCode();
-      if(expectedUpdateVersion>0 && archiveVersion!=expectedUpdateVersion){apk.delete();toast("Update package version mismatch. Please try again.");return;}
-      if(archiveVersion<=currentVersion){apk.delete();toast("This update is already installed");return;}
       Uri uri=FileProvider.getUriForFile(this,getPackageName()+".fileprovider",apk);
       Intent in=new Intent(Intent.ACTION_VIEW);in.setDataAndType(uri,"application/vnd.android.package-archive");
       in.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_ACTIVITY_NEW_TASK);startActivity(in);

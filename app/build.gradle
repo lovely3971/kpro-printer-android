@@ -8,7 +8,7 @@ android {
         minSdk 23
         targetSdk 35
         versionCode 9
-        versionName '1.8.0-v11-four-root-fixes'
+        versionName '1.8.0-delete-bill-restock-fix'
     }
     signingConfigs {
         debug {

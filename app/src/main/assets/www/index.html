@@ -13,12 +13,14 @@
 <style>
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#050805;font-family:Arial,sans-serif}body{display:flex;justify-content:center;align-items:flex-start}.screen{display:none;width:100%;max-width:1024px;position:relative}.screen.active{display:block}.design{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}.hot{position:absolute;border:0;background:transparent;cursor:pointer;padding:0;-webkit-appearance:none;appearance:none}.realtab{-webkit-appearance:none;appearance:none;outline:none;-webkit-tap-highlight-color:transparent}#codeFieldBg{position:absolute;left:19%;top:48%;width:46%;height:7%;background:#040704;z-index:3}#activationCode{position:absolute;left:8.1%;top:47.4%;width:83.3%;height:8.0%;border:0;outline:0;background:transparent;color:white;font-size:clamp(15px,3.1vw,31px);padding:0 12% 0 13%;z-index:4}#activationCode::placeholder{color:#8fa08f}#codeField{position:absolute;inset:0;pointer-events:none}#eyeBtn{left:80%;top:48.2%;width:10%;height:6.5%;z-index:6}#actBtn{left:8%;top:57.4%;width:83.5%;height:8.2%;z-index:5}#logoutBtn{left:8%;top:67.3%;width:83.5%;height:8.5%;z-index:5}#screenShop{background:white}#tabsCover{display:none!important}.realtab{position:absolute;top:45.45%;width:26.4%;height:11.65%;z-index:4;border:0!important;background:transparent!important;box-shadow:none!important;display:block;font-size:0;color:transparent;cursor:pointer}.realtab svg,.realtab span{display:none!important}#tab-login{left:8.1%}#tab-create{left:36.8%}#tab-join{left:65.4%}.realtab.active{background:transparent!important;border:0!important;outline:none!important}#oldCtaCover{position:absolute;left:0;top:57.6%;width:100%;height:11.3%;background:#fff;z-index:3;pointer-events:none}#realBackBtn{position:absolute;left:8%;top:59.5%;width:83%;height:7.5%;z-index:4;border-radius:14px;background:#0a0a0a;border:none;display:flex;align-items:center;justify-content:center;gap:3%;cursor:pointer;-webkit-appearance:none;appearance:none;outline:none;-webkit-tap-highlight-color:transparent}#realBackBtn .circ{width:9%;aspect-ratio:1;border-radius:50%;border:2px solid #a9d97a;display:flex;align-items:center;justify-content:center;flex:none}#realBackBtn .circ svg{width:60%;height:60%;color:#a9d97a}#realBackBtn span{color:#fff;font-family:Arial,sans-serif;font-weight:700;font-size:clamp(15px,3.4vw,24px)}#backAct{left:8%;top:63.2%;width:83%;height:7.2%}.chosen{outline:2px solid rgba(130,220,0,.35);border-radius:18px}#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:11px 18px;border-radius:10px;display:none;z-index:99;max-width:88vw;text-align:center}
 
-/* ===== SHOP SELECTOR HIT AREAS =====
-   The artwork already contains the three complete Login/Create/Join cards.
-   These buttons are interaction-only overlays; they must never paint a second row. */
-#tab-login,#tab-create,#tab-join{background:transparent!important;border:0!important;color:transparent!important;box-shadow:none!important;transform:none!important}
-#tab-login svg,#tab-create svg,#tab-join svg,#tab-login span,#tab-create span,#tab-join span{display:none!important}
-.realtab.active{background:transparent!important;border:0!important;outline:none!important;box-shadow:none!important;transform:none!important}
+/* ===== USER REQUESTED TAB COLOURS + WORKING ACTION CTA ===== */
+#tab-login{background:linear-gradient(180deg,#98ef39,#39a80b)!important;border-color:#5ec51d!important;color:#082900!important}
+#tab-login svg{color:#0b5f11!important}
+#tab-create{background:linear-gradient(180deg,#efffe4 0%,#d7f6c4 100%)!important;border-color:#a9d97a!important;color:#183318!important}
+#tab-create svg{color:#2b7a2b!important}
+#tab-join{background:#ffd92f!important;border-color:#e2b900!important;color:#3b3000!important}
+#tab-join svg{color:#6b5700!important}
+.realtab.active{box-shadow:0 0 0 3px rgba(72,160,32,.18),0 5px 14px rgba(0,0,0,.10)!important;transform:translateY(-1px)}
 #realBackBtn{top:59.5%!important}
 #oldCtaCover{top:57.6%!important;height:11.3%!important}
 
@@ -294,7 +296,7 @@ html.kp-native-android body.kp-activation-screen #screenActivate .design{width:1
 </div>
 <div class="screen" id="screenActivate">
 <img class="design" src="activate-design.webp" alt="Kanakku Pulla PRO Activation">
-<div id="codeField"><div id="codeFieldBg"></div></div><input type="text" id="activationCode" name="kp_activation_code" class="kp-code-hidden" placeholder="Enter Activation Code" autocomplete="off" aria-autocomplete="none" autocorrect="off" autocapitalize="characters" spellcheck="false" inputmode="text" data-form-type="other">
+<div id="codeField"><div id="codeFieldBg"></div></div><input type="text" id="activationCode" class="kp-code-hidden" placeholder="Enter Activation Code" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" inputmode="text" data-form-type="other">
 <button class="hot" id="eyeBtn" onclick="toggleCodeVisibility()" aria-label="Show code"></button>
 <button class="hot" id="actBtn" onclick="activateDevice()" aria-label="Activate"></button>
 <button class="hot" id="logoutBtn" onclick="logoutDevice()" aria-label="Logout"></button>
@@ -2506,11 +2508,10 @@ async function cancelBill(id){
   const shouldRestock = b.status!=='Draft' && b.stockApplied!==false;
   if(!(await appConfirm(shouldRestock?'Cancel this bill and restock items?':'Cancel this draft bill?'))) return;
   if(shouldRestock){
-    const built=kpBuildStockMap(b.items);
-    if(built.unresolved.length){toast('Cannot cancel: '+built.unresolved.length+' bill item(s) could not be matched to Product List');return;}
-    Object.keys(built.map).forEach(pid=>{
+    const restore=kpStockQtyMap(b.items);
+    Object.keys(restore).forEach(pid=>{
       const p=DB.products.find(x=>String(x.id)===String(pid));
-      if(p)p.stock=Number(p.stock||0)+Number(built.map[pid]||0);
+      if(p)p.stock=Number(p.stock||0)+Number(restore[pid]||0);
     });
   }
   b.stockApplied=false;
@@ -2521,8 +2522,21 @@ async function cancelBill(id){
   toast(shouldRestock?'Bill cancelled and stock restored':'Draft cancelled');
 }
 async function deleteBill(id){
-  if(!(await appConfirm('Delete this bill permanently?'))) return;
-  DB.bills=DB.bills.filter(b=>b.id!==id); save(); renderBills(); renderDashboard();
+  const b=DB.bills.find(x=>x.id===id);
+  if(!b) return;
+  const shouldRestock = b.status!=='Draft' && b.status!=='Cancelled' && b.stockApplied!==false;
+  if(!(await appConfirm(shouldRestock?'Delete this bill permanently and restock its items?':'Delete this bill permanently?'))) return;
+  if(shouldRestock){
+    const restore=kpStockQtyMap(b.items);
+    Object.keys(restore).forEach(pid=>{
+      const p=DB.products.find(x=>String(x.id)===String(pid));
+      if(p)p.stock=Number(p.stock||0)+Number(restore[pid]||0);
+    });
+  }
+  DB.bills=DB.bills.filter(x=>x.id!==id);
+  kpPersistStockNow();
+  refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills();
+  toast(shouldRestock?'Bill deleted and stock restored':'Bill deleted');
 }
 
 
@@ -2616,40 +2630,30 @@ function renderBillEditRows(){
 function kpNormProductKey(v){return String(v||'').trim().toLowerCase();}
 function kpResolveBillProduct(item){
   if(!item)return null;
-  const products=Array.isArray(DB.products)?DB.products:[];
-  const same=(a,b)=>kpNormProductKey(a) && kpNormProductKey(a)===kpNormProductKey(b);
   let p=null;
-  const ids=[item.productId,item.product_id,item.id].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='');
-  for(const id of ids){p=products.find(x=>String(x.id)===String(id));if(p)break;}
-  const codes=[item.productCode,item.product_code,item.code,item.barcode].filter(Boolean);
-  if(!p){for(const code of codes){p=products.find(x=>same(x.code,code)||same(x.barcode,code));if(p)break;}}
-  const skus=[item.productSku,item.product_sku,item.sku].filter(Boolean);
-  if(!p){for(const sku of skus){p=products.find(x=>same(x.sku,sku));if(p)break;}}
+  if(item.productId)p=DB.products.find(x=>String(x.id)===String(item.productId));
+  if(!p && item.productCode)p=DB.products.find(x=>kpNormProductKey(x.code)===kpNormProductKey(item.productCode));
+  if(!p && item.productSku)p=DB.products.find(x=>kpNormProductKey(x.sku)===kpNormProductKey(item.productSku));
   if(!p && item.name){
-    const matches=products.filter(x=>same(x.name,item.name));
+    const matches=DB.products.filter(x=>kpNormProductKey(x.name)===kpNormProductKey(item.name));
     if(matches.length===1)p=matches[0];
   }
   return p||null;
 }
-function kpBuildStockMap(items){
-  const map={},unresolved=[];
+function kpStockQtyMap(items){
+  const m={};
   (items||[]).forEach(i=>{
-    const qty=Math.max(0,Number(i&&i.qty||0));
-    if(!qty)return;
     const p=kpResolveBillProduct(i);
-    if(!p){unresolved.push(i);return;}
+    if(!p)return;
     const key=String(p.id);
-    map[key]=(map[key]||0)+qty;
+    m[key]=(m[key]||0)+Math.max(0,Number(i.qty||0));
   });
-  return {map,unresolved};
+  return m;
 }
-function kpStockQtyMap(items){return kpBuildStockMap(items).map;}
 function qtyMap(items){return kpStockQtyMap(items);}
 function kpPersistStockNow(){
   save();
-  try{
-    if(typeof kpCloudSave==='function') Promise.resolve(kpCloudSave()).catch(e=>console.warn('Stock cloud sync failed',e));
-  }catch(e){console.warn('Stock cloud sync failed',e)}
+  try{if(window.parent&&window.parent!==window&&typeof window.parent.kpCloudSave==='function')window.parent.kpCloudSave();}catch(e){}
 }
 function saveEditedBill(){
   if(!billEditState) return;
@@ -2658,16 +2662,11 @@ function saveEditedBill(){
   const gstin=(document.getElementById('beGSTIN').value||'').trim().toUpperCase();
   if(!customer){ toast('Enter customer name'); document.getElementById('beCustomer').focus(); return; }
   if(gstin && !isValidGSTIN(gstin)){ toast('Enter a valid 15-character GSTIN'); document.getElementById('beGSTIN').focus(); return; }
-  const items=billEditState.items.filter(i=>Number(i.qty)>0);
+  const items=billEditState.items.filter(i=>i.productId && Number(i.qty)>0);
   if(!items.length){ toast('Bill must contain at least one product'); return; }
-  const resolvedItems=items.map(i=>{const p=kpResolveBillProduct(i);return {item:i,product:p};});
-  const unresolvedNow=resolvedItems.filter(x=>!x.product);
-  if(unresolvedNow.length){toast('Cannot save: '+unresolvedNow.length+' bill item(s) could not be matched to Product List');return;}
   const stockTracked = bill.status!=='Draft' && bill.status!=='Cancelled' && bill.stockApplied!==false;
   if(stockTracked){
-    const oldBuilt=kpBuildStockMap(billEditState.originalItems),newBuilt=kpBuildStockMap(items);
-    if(oldBuilt.unresolved.length){toast('Cannot adjust stock: original bill product could not be matched');return;}
-    const oldMap=oldBuilt.map, newMap=newBuilt.map, ids=new Set([...Object.keys(oldMap),...Object.keys(newMap)]);
+    const oldMap=kpStockQtyMap(billEditState.originalItems), newMap=kpStockQtyMap(items), ids=new Set([...Object.keys(oldMap),...Object.keys(newMap)]);
     for(const pid of ids){
       const diff=(newMap[pid]||0)-(oldMap[pid]||0),p=DB.products.find(x=>String(x.id)===String(pid));
       if(diff>0 && p && Number(p.stock)<diff){toast('Not enough stock for '+p.name);return;}
