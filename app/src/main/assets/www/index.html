@@ -302,7 +302,7 @@ html.kp-native-android body.kp-activation-screen #screenActivate .design{width:1
 <button class="hot" id="logoutBtn" onclick="logoutDevice()" aria-label="Logout"></button>
 </div>
 <div class="screen" id="screenShop">
-<img class="design" src="shop-design.webp" alt="Kanakku Pulla PRO Login Create Shop Join Shop">
+<img class="design" src="shop-design.webp?v=13" alt="Kanakku Pulla PRO Login Create Shop Join Shop">
 <div id="tabsCover"></div>
 <button class="realtab active" id="tab-login" onclick="selectTab('login');doMainAction()">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
@@ -2525,7 +2525,7 @@ async function deleteBill(id){
   const b=DB.bills.find(x=>x.id===id);
   if(!b) return;
   const shouldRestock = b.status!=='Draft' && b.status!=='Cancelled' && b.stockApplied!==false;
-  if(!(await appConfirm(shouldRestock?'Delete this bill permanently and restock its items?':'Delete this bill permanently?'))) return;
+  if(!(await appConfirm(shouldRestock?'Delete this bill permanently? Its products will be auto restocked.':'Delete this bill permanently?'))) return;
   if(shouldRestock){
     const restore=kpStockQtyMap(b.items);
     Object.keys(restore).forEach(pid=>{
@@ -2536,7 +2536,7 @@ async function deleteBill(id){
   DB.bills=DB.bills.filter(x=>x.id!==id);
   kpPersistStockNow();
   refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills();
-  toast(shouldRestock?'Bill deleted and stock restored':'Bill deleted');
+  toast(shouldRestock?'Bill deleted. Products restocked successfully.':'Bill deleted');
 }
 
 
@@ -2614,7 +2614,7 @@ function billEditRowChange(index,field,value){
   if(!billEditState || !billEditState.items[index]) return;
   billEditState.items[index][field]=Math.max(0,Number(value||0)); renderBillEditRows();
 }
-async function removeBillEditItem(index){ if(!billEditState) return; if(!(await appConfirm('Remove this product from the bill? Stock will be adjusted only when you press Save Changes.'))) return; billEditState.items.splice(index,1); renderBillEditRows(); }
+async function removeBillEditItem(index){ if(!billEditState) return; if(!(await appConfirm('Remove this product from the bill? It will be auto restocked when you press Save Changes.'))) return; billEditState.items.splice(index,1); renderBillEditRows(); }
 function renderBillEditRows(){
   if(!billEditState) return;
   const body=document.getElementById('billEditItemsBody');
@@ -2665,6 +2665,7 @@ function saveEditedBill(){
   const items=billEditState.items.filter(i=>i.productId && Number(i.qty)>0);
   if(!items.length){ toast('Bill must contain at least one product'); return; }
   const stockTracked = bill.status!=='Draft' && bill.status!=='Cancelled' && bill.stockApplied!==false;
+  let netRestockQty=0;
   if(stockTracked){
     const oldMap=kpStockQtyMap(billEditState.originalItems), newMap=kpStockQtyMap(items), ids=new Set([...Object.keys(oldMap),...Object.keys(newMap)]);
     for(const pid of ids){
@@ -2675,7 +2676,7 @@ function saveEditedBill(){
       const diff=(newMap[pid]||0)-(oldMap[pid]||0),p=DB.products.find(x=>String(x.id)===String(pid));
       if(!p)continue;
       if(diff>0)p.stock=Math.max(0,Number(p.stock||0)-diff);
-      else if(diff<0)p.stock=Number(p.stock||0)+Math.abs(diff);
+      else if(diff<0){p.stock=Number(p.stock||0)+Math.abs(diff); netRestockQty+=Math.abs(diff);}
     }
   }
   bill.customer=customer;
@@ -2690,7 +2691,7 @@ function saveEditedBill(){
   bill.items=items.map(i=>{const p=kpResolveBillProduct(i)||{};return {...i,productId:p.id||i.productId,productCode:p.code||i.productCode||'',productSku:p.sku||i.productSku||'',name:i.name||p.name||'Product'};});
   bill.subtotal=items.reduce((s,i)=>s+Number(i.qty)*Number(i.rate),0); bill.totalTax=items.reduce((s,i)=>s+Number(i.qty)*Number(i.rate)*Number(i.tax)/100,0); bill.grandTotal=bill.subtotal+bill.totalTax-Number(bill.discount||0); bill.updatedAt=new Date().toISOString();
   if(stockTracked) bill.stockApplied=true;
-  kpPersistStockNow(); refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills(); closeBillEditor(); toast('Bill details updated and stock adjusted');
+  kpPersistStockNow(); refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills(); closeBillEditor(); toast(netRestockQty>0?'Bill updated. Products restocked successfully.':'Bill details updated and stock adjusted');
 }
 
 /* ============ PURCHASES ============ */

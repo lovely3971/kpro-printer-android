@@ -1,4 +1,4 @@
-const CACHE='kanakku-pulla-pro-v13-practical-iphone-print';
+const CACHE='kanakku-pulla-pro-v14-update-install-icons';
 const CORE=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./activate-design.webp','./shop-design.webp','./refresh-buffer-logo.jpeg'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)));

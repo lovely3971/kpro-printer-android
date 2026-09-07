@@ -1,6 +1,6 @@
 {
-  "versionCode": 9,
-  "versionName": "Delete Bill Restock Fix",
+  "versionCode": 13,
+  "versionName": "Update Install + Login Icons Root Fix",
   "apkUrl": "https://github.com/lovely3971/kpro-printer-android/releases/download/latest/app-debug.apk",
-  "notes": "Fixed: deleting a bill permanently now auto-restocks its items (previously only Cancel Bill restocked, not permanent Delete)."
+  "notes": "Fixes update install resume across app switching/settings, FileProvider access to downloaded APK, stale APK blocking, and refreshes the Login/Create Shop/Join Shop design asset so icons are not blank."
 }

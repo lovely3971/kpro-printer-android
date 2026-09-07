@@ -30,15 +30,24 @@ public class MainActivity extends Activity {
   private static final UUID SPP=UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
   private static final int REQ_BT=501, REQ_FILE=502, REQ_CAMERA=504;
   private static final String UPDATE_JSON_URL="https://raw.githubusercontent.com/lovely3971/kpro-printer-android/main/update.json";
+  private static final String UPDATE_PREFS="kpro_update_prefs";
   private long updateDownloadId=-1; private String downloadedApkName="kanakku-pulla-pro-update.apk";
+  private int pendingLatestVersionCode=-1;
   private WebView web; private BluetoothAdapter bt; private BluetoothSocket socket; private final Queue<byte[]> pendingQueue=new ArrayDeque<>(); private final Object printLock=new Object(); private boolean chooserOpen=false;
   private ValueCallback<Uri[]> fileCallback;
   private PermissionRequest pendingWebPermissionRequest;
 
   @Override public void onCreate(Bundle b){
     super.onCreate(b);bt=BluetoothAdapter.getDefaultAdapter();setupWeb();registerUpdateReceiver();
-    new Handler(Looper.getMainLooper()).postDelayed(()->checkForAppUpdate(false),2500);
+    resumePendingDownloadIfAny();
+    new Handler(Looper.getMainLooper()).postDelayed(()->{checkPendingUpdateMismatch();checkForAppUpdate(false);},2500);
   }
+  @Override protected void onResume(){
+    super.onResume();
+    // Returning from another app/settings must never lose a completed update.
+    new Handler(Looper.getMainLooper()).postDelayed(this::resumePendingDownloadIfAny,700);
+  }
+
   private void setupWeb(){
     web=new WebView(this);setContentView(web);WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setDatabaseEnabled(true);s.setAllowFileAccess(true);s.setAllowContentAccess(true);s.setMediaPlaybackRequiresUserGesture(false);s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
     web.addJavascriptInterface(new PrinterBridge(),"KPRO_NATIVE");
@@ -92,7 +101,7 @@ public class MainActivity extends Activity {
         JSONObject j=new JSONObject(sb.toString());
         int latest=j.getInt("versionCode"); String name=j.optString("versionName","New update"); String apk=j.getString("apkUrl"); String notes=j.optString("notes","Latest improvements and fixes.");
         int current=getPackageManager().getPackageInfo(getPackageName(),0).versionCode;
-        runOnUiThread(()->{if(latest>current)showUpdateDialog(name,notes,apk);else if(manual)toast("App already up to date ✓");});
+        runOnUiThread(()->{if(latest>current){pendingLatestVersionCode=latest;showUpdateDialog(name,notes,apk);}else if(manual)toast("App already up to date ✓");});
       }catch(Exception e){if(manual)runOnUiThread(()->toast("Update check failed — internet check pannunga"));}
       finally{if(con!=null)con.disconnect();}
     }).start();
@@ -105,12 +114,19 @@ public class MainActivity extends Activity {
   }
   private void downloadUpdate(String apkUrl){
     try{
+      File existing=new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),downloadedApkName);
+      if(existing.exists()) existing.delete();
       DownloadManager dm=(DownloadManager)getSystemService(DOWNLOAD_SERVICE);
       DownloadManager.Request r=new DownloadManager.Request(Uri.parse(apkUrl));
       r.setTitle("Kanakku Pulla PRO Update");r.setDescription("Downloading latest version…");
       r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
       r.setDestinationInExternalFilesDir(this,Environment.DIRECTORY_DOWNLOADS,downloadedApkName);
-      updateDownloadId=dm.enqueue(r);toast("Update downloading…");
+      updateDownloadId=dm.enqueue(r);
+      getSharedPreferences(UPDATE_PREFS,MODE_PRIVATE).edit()
+        .putLong("pendingDownloadId",updateDownloadId)
+        .putInt("pendingDownloadTargetVersion",pendingLatestVersionCode)
+        .apply();
+      toast("Update downloading…");
     }catch(Exception e){toast("Update download failed");}
   }
   private void installDownloadedUpdate(){
@@ -121,10 +137,79 @@ public class MainActivity extends Activity {
       }
       File apk=new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),downloadedApkName);
       if(!apk.exists()){toast("Downloaded update file not found");return;}
+      if(pendingLatestVersionCode>0){
+        int currentBeforeInstall=getPackageManager().getPackageInfo(getPackageName(),0).versionCode;
+        getSharedPreferences(UPDATE_PREFS,MODE_PRIVATE).edit()
+          .putInt("pendingFromVersion",currentBeforeInstall)
+          .putInt("pendingToVersion",pendingLatestVersionCode)
+          .apply();
+      }
+      // Never open a stale/old APK even if GitHub/CDN returned an older cached file.
+      try{
+        android.content.pm.PackageInfo pi=getPackageManager().getPackageArchiveInfo(apk.getAbsolutePath(),0);
+        if(pi==null){ apk.delete(); toast("Downloaded update is invalid. Please try again."); return; }
+        long apkCode=Build.VERSION.SDK_INT>=28?pi.getLongVersionCode():pi.versionCode;
+        long currentCode=Build.VERSION.SDK_INT>=28?getPackageManager().getPackageInfo(getPackageName(),0).getLongVersionCode():getPackageManager().getPackageInfo(getPackageName(),0).versionCode;
+        if(apkCode<=currentCode || (pendingLatestVersionCode>0 && apkCode<pendingLatestVersionCode)){
+          apk.delete();
+          getSharedPreferences(UPDATE_PREFS,MODE_PRIVATE).edit().remove("pendingDownloadId").apply();
+          toast("Old update file blocked. Checking latest update again…");
+          checkForAppUpdate(false);
+          return;
+        }
+      }catch(Exception e){ apk.delete(); toast("Update verification failed. Please try again."); return; }
       Uri uri=FileProvider.getUriForFile(this,getPackageName()+".fileprovider",apk);
       Intent in=new Intent(Intent.ACTION_VIEW);in.setDataAndType(uri,"application/vnd.android.package-archive");
       in.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_ACTIVITY_NEW_TASK);startActivity(in);
     }catch(Exception e){toast("Update install open failed: "+e.getMessage());}
+  }
+  private void resumePendingDownloadIfAny(){
+    try{
+      SharedPreferences sp=getSharedPreferences(UPDATE_PREFS,MODE_PRIVATE);
+      long id=sp.getLong("pendingDownloadId",-1);
+      if(id<=0) return;
+      updateDownloadId=id;
+      if(pendingLatestVersionCode<=0) pendingLatestVersionCode=sp.getInt("pendingDownloadTargetVersion",-1);
+      DownloadManager dm=(DownloadManager)getSystemService(DOWNLOAD_SERVICE);
+      Cursor c=dm.query(new DownloadManager.Query().setFilterById(id));
+      if(c==null) return;
+      try{
+        if(c.moveToFirst()){
+          int statusIdx=c.getColumnIndex(DownloadManager.COLUMN_STATUS);
+          int status=statusIdx>=0?c.getInt(statusIdx):-1;
+          if(status==DownloadManager.STATUS_SUCCESSFUL){
+            installDownloadedUpdate();
+          }else if(status==DownloadManager.STATUS_FAILED){
+            sp.edit().remove("pendingDownloadId").apply();
+          }
+          // STATUS_RUNNING/STATUS_PENDING: still going, the broadcast receiver (if we're still alive) will catch it
+        }else{
+          sp.edit().remove("pendingDownloadId").apply();
+        }
+      }finally{ c.close(); }
+    }catch(Exception ignored){}
+  }
+  private void checkPendingUpdateMismatch(){
+    try{
+      SharedPreferences sp=getSharedPreferences(UPDATE_PREFS,MODE_PRIVATE);
+      int pendingTo=sp.getInt("pendingToVersion",-1);
+      if(pendingTo<=0) return;
+      int current=getPackageManager().getPackageInfo(getPackageName(),0).versionCode;
+      if(current>=pendingTo){
+        sp.edit().remove("pendingToVersion").remove("pendingFromVersion").apply();
+        return;
+      }
+      showSignatureMismatchDialog();
+    }catch(Exception ignored){}
+  }
+  private void showSignatureMismatchDialog(){
+    new AlertDialog.Builder(this).setTitle("Update Could Not Install")
+      .setMessage("Last time, the update did not actually install — this app is still on the older version. This usually happens when the currently installed app was signed with a different security key than the new update.\n\nOru vaati mattum: please UNINSTALL this app completely, then install the latest APK fresh. After that, future updates will apply automatically without any issue.")
+      .setPositiveButton("Uninstall Now",(d,w)->{
+        try{ startActivity(new Intent(Intent.ACTION_DELETE,Uri.parse("package:"+getPackageName()))); }
+        catch(Exception e){ toast("Settings > Apps > Kanakku Pulla PRO > Uninstall pannunga"); }
+      })
+      .setNegativeButton("Later",null).setCancelable(true).show();
   }
 
   public class PrinterBridge {

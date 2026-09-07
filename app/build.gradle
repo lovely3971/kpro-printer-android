@@ -7,8 +7,8 @@ android {
         applicationId 'com.lovelyshoppe.kanakkupullapro'
         minSdk 23
         targetSdk 35
-        versionCode 9
-        versionName '1.8.0-delete-bill-restock-fix'
+        versionCode 13
+        versionName '2.1.1-update-install-icons-root-fix'
     }
     signingConfigs {
         debug {
