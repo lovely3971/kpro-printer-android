@@ -1476,6 +1476,7 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 <div class="barcode-size-row"><span>Font / Element Size (mm)</span><div><button class="btn btn-dark btn-sm barcode-hold" data-action="size" data-value="-1" onclick="sizeBarcodeEl(-1)">A−</button><b id="barcodeSizeValue">0.0 mm</b><button class="btn btn-dark btn-sm barcode-hold" data-action="size" data-value="1" onclick="sizeBarcodeEl(1)">A+</button></div></div>
 <div class="barcode-help" style="margin-top:8px">Tip: press and hold arrows or A− / A+ for continuous mm adjustment.</div>
 <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-dark" onclick="resetAllBarcodeDesign()" style="flex:1">Reset All</button><button class="btn btn-primary" onclick="saveLockBarcodeDesign()" style="flex:1">Save &amp; Lock Design</button></div>
+<div style="margin-top:10px"><button class="btn btn-primary" onclick="openFixedBarcodeDesignConfirm()" style="width:100%;font-weight:900">📌 Fixed Design</button></div>
 </div>
 </div>
 </div>
@@ -1486,6 +1487,13 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 <div class="tip" style="margin-top:12px">35 × 22 mm labels • 3 labels per row • 5 mm gap • total width 115 mm</div>
 </div>
 </div>
+</div>
+<div id="fixedBarcodeDesignModal" style="display:none;position:fixed;inset:0;z-index:9900;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:18px">
+  <div style="width:min(420px,94vw);background:var(--surface,#0d130d);border:1px solid var(--border,#2a3a2a);border-radius:16px;padding:20px;box-shadow:0 22px 70px rgba(0,0,0,.5)">
+    <h3 style="margin:0 0 8px">Fixed Design</h3>
+    <p style="margin:0 0 18px;color:var(--text-dim,#b8c4b5);line-height:1.45">Save the same design for later?</p>
+    <div style="display:flex;gap:10px"><button class="btn btn-dark" onclick="closeFixedBarcodeDesignConfirm()" style="flex:1">NO</button><button class="btn btn-primary" onclick="confirmFixedBarcodeDesign()" style="flex:1">YES</button></div>
+  </div>
 </div>
 <!-- SHIPPING LABELS -->
 <div class="page" id="page-shipping">
@@ -2954,6 +2962,34 @@ function moveBarcodeEl(dir){const o=barcodeDesign[barcodeSelectedEl]||(barcodeDe
 function sizeBarcodeEl(d){const o=barcodeDesign[barcodeSelectedEl]||(barcodeDesign[barcodeSelectedEl]={x:0,y:0,sizeMM:BARCODE_BASE_MM[barcodeSelectedEl]});const step=.1;o.sizeMM=Math.max(barcodeSelectedEl==='barcode'?2:1,Math.min(barcodeSelectedEl==='barcode'?14:8,Number(o.sizeMM||BARCODE_BASE_MM[barcodeSelectedEl])+d*step));o.sizeMM=+o.sizeMM.toFixed(1);renderBarcodeEditor();previewLabelsLive();}
 function resetBarcodeEl(){const type=(typeof currentLabelType==='function'?currentLabelType():'normal');let base=defaultBarcodeDesign();if(type==='anybarcode'&&typeof anyBarcodeDefaultDesign==='function')base=anyBarcodeDefaultDesign();else if(type!=='normal'&&typeof jewelDefaultDesign==='function')base=jewelDefaultDesign(type);barcodeDesign[barcodeSelectedEl]={...base[barcodeSelectedEl]};renderBarcodeEditor();previewLabelsLive();}
 function resetAllBarcodeDesign(){const type=(typeof currentLabelType==='function'?currentLabelType():'normal');if(type==='anybarcode'&&typeof anyBarcodeDefaultDesign==='function')barcodeDesign=anyBarcodeDefaultDesign();else barcodeDesign=(type!=='normal'&&typeof jewelDefaultDesign==='function')?jewelDefaultDesign(type):defaultBarcodeDesign();renderBarcodeEditor();previewLabelsLive();}
+const KP_FIXED_BARCODE_DESIGN_KEY='kp_pro_fixed_barcode_design_v15';
+function openFixedBarcodeDesignConfirm(){const m=document.getElementById('fixedBarcodeDesignModal');if(m)m.style.display='flex';}
+function closeFixedBarcodeDesignConfirm(){const m=document.getElementById('fixedBarcodeDesignModal');if(m)m.style.display='none';}
+function fixedBarcodeSnapshot(){
+  const type=currentLabelType();
+  const snap={version:1,type,labelsPerRow:jewelLabelsPerRow(),printerProfile:document.getElementById('barcodePrinterProfile')?.value||'auto',design:JSON.parse(JSON.stringify(barcodeDesign||{}))};
+  if(isJewelleryMode())snap.jewelDims=readJewelDims();
+  if(isAnyBarcodeMode())snap.anyDims=readAnyBarcodeDims();
+  return snap;
+}
+function confirmFixedBarcodeDesign(){
+  try{localStorage.setItem(KP_FIXED_BARCODE_DESIGN_KEY,JSON.stringify(fixedBarcodeSnapshot()));saveBarcodeDesign();}
+  catch(e){toast('Unable to save fixed design');return;}
+  closeFixedBarcodeDesignConfirm();
+  barcodeEditing=false;const ed=document.getElementById('barcodeDesignEditor'),lk=document.getElementById('barcodeDesignLocked');if(ed)ed.style.display='none';if(lk)lk.style.display='flex';
+  previewLabelsLive();toast('Fixed design saved for later');
+}
+function applyFixedBarcodeDesign(){
+  let snap=null;try{snap=JSON.parse(localStorage.getItem(KP_FIXED_BARCODE_DESIGN_KEY)||'null');}catch(e){} if(!snap||!snap.type||!snap.design)return false;
+  const typeEl=document.getElementById('barcodeLabelType');if(typeEl&&[...typeEl.options].some(o=>o.value===snap.type))typeEl.value=snap.type;
+  changeBarcodeLabelType();
+  const up=document.getElementById('jewelLabelsPerRow');if(up&&snap.labelsPerRow)up.value=String(Math.max(1,Math.min(3,Number(snap.labelsPerRow)||1)));
+  const pp=document.getElementById('barcodePrinterProfile');if(pp&&snap.printerProfile&&[...pp.options].some(o=>o.value===snap.printerProfile))pp.value=snap.printerProfile;
+  if(snap.jewelDims&&isJewelleryMode())writeJewelDims(snap.jewelDims);
+  if(snap.anyDims&&isAnyBarcodeMode())[['anyLabelLength','l'],['anyLabelHeight','h'],['anyRollWidth','w'],['anyLabelGap','gap']].forEach(([id,k])=>{const el=document.getElementById(id);if(el&&snap.anyDims[k]!=null)el.value=snap.anyDims[k];});
+  barcodeDesign=JSON.parse(JSON.stringify(snap.design));activeBarcodeLayoutType=snap.type;renderBarcodeEditor();previewLabelsLive();return true;
+}
+window.addEventListener('load',()=>setTimeout(applyFixedBarcodeDesign,120));
 let barcodeHoldTimer=null,barcodeHoldDelay=null;
 function stopBarcodeHold(){clearInterval(barcodeHoldTimer);clearTimeout(barcodeHoldDelay);barcodeHoldTimer=barcodeHoldDelay=null;}
 function bindBarcodeHoldButtons(){document.querySelectorAll('.barcode-hold').forEach(btn=>{if(btn.dataset.holdBound)return;btn.dataset.holdBound='1';const fire=()=>{if(btn.dataset.action==='move')moveBarcodeEl(btn.dataset.value);else sizeBarcodeEl(Number(btn.dataset.value));};btn.addEventListener('pointerdown',e=>{e.preventDefault();stopBarcodeHold();barcodeHoldDelay=setTimeout(()=>{fire();barcodeHoldTimer=setInterval(fire,75);},320);});['pointerup','pointercancel','pointerleave'].forEach(ev=>btn.addEventListener(ev,stopBarcodeHold));});}
