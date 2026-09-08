@@ -1,0 +1,12 @@
+KANAKKU PULLA PRO ANDROID V20
+
+Base: V19 Preview Print Alignment Fix
+
+Targeted fixes only:
+1. Activation state + device ID now persist in Android SharedPreferences via KPRO_NATIVE.
+2. Existing V19 WebView localStorage activation migrates automatically to native storage on first V20 launch.
+3. Device ID is generated/read from native storage so app refresh/WebView state changes cannot create a new ID.
+4. Update installer clears pendingDownloadId before launching, preventing onResume from opening installer repeatedly.
+5. Cancelled update no longer shows a forced uninstall/signature-mismatch flow. It safely allows a later retry.
+6. V19 barcode/label preview/print alignment logic is preserved unchanged.
+7. Package/application ID and bundled signing keystore/config are unchanged for direct V19 -> V20 update compatibility.

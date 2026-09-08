@@ -31,6 +31,9 @@ public class MainActivity extends Activity {
   private static final int REQ_BT=501, REQ_FILE=502, REQ_CAMERA=504;
   private static final String UPDATE_JSON_URL="https://raw.githubusercontent.com/lovely3971/kpro-printer-android/main/update.json";
   private static final String UPDATE_PREFS="kpro_update_prefs";
+  private static final String NATIVE_STATE_PREFS="kpro_native_state";
+  private static final String NATIVE_ACTIVATION_STATE="activation_state_json";
+  private static final String NATIVE_DEVICE_ID="device_id";
   private long updateDownloadId=-1; private String downloadedApkName="kanakku-pulla-pro-update.apk";
   private int pendingLatestVersionCode=-1;
   private WebView web; private BluetoothAdapter bt; private BluetoothSocket socket; private final Queue<byte[]> pendingQueue=new ArrayDeque<>(); private final Object printLock=new Object(); private boolean chooserOpen=false;
@@ -159,6 +162,14 @@ public class MainActivity extends Activity {
         }
       }catch(Exception e){ apk.delete(); toast("Update verification failed. Please try again."); return; }
       Uri uri=FileProvider.getUriForFile(this,getPackageName()+".fileprovider",apk);
+      // IMPORTANT: clear the download-resume trigger BEFORE opening Android's installer.
+      // Otherwise onResume() can immediately launch the same installer again.
+      getSharedPreferences(UPDATE_PREFS,MODE_PRIVATE).edit()
+        .remove("pendingDownloadId")
+        .putBoolean("installLaunchPending",true)
+        .putLong("installLaunchAt",System.currentTimeMillis())
+        .apply();
+      updateDownloadId=-1;
       Intent in=new Intent(Intent.ACTION_VIEW);in.setDataAndType(uri,"application/vnd.android.package-archive");
       in.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_ACTIVITY_NEW_TASK);startActivity(in);
     }catch(Exception e){toast("Update install open failed: "+e.getMessage());}
@@ -196,23 +207,48 @@ public class MainActivity extends Activity {
       if(pendingTo<=0) return;
       int current=getPackageManager().getPackageInfo(getPackageName(),0).versionCode;
       if(current>=pendingTo){
-        sp.edit().remove("pendingToVersion").remove("pendingFromVersion").apply();
+        sp.edit().remove("pendingToVersion").remove("pendingFromVersion")
+          .remove("installLaunchPending").remove("installLaunchAt").apply();
+        File apk=new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),downloadedApkName);
+        if(apk.exists())apk.delete();
         return;
       }
-      showSignatureMismatchDialog();
+      // If installer was opened but user cancelled/closed it, never force uninstall and never loop.
+      // A future update check can safely offer the update again.
+      if(sp.getBoolean("installLaunchPending",false)){
+        sp.edit().remove("installLaunchPending").remove("installLaunchAt")
+          .remove("pendingToVersion").remove("pendingFromVersion").apply();
+      }
     }catch(Exception ignored){}
-  }
-  private void showSignatureMismatchDialog(){
-    new AlertDialog.Builder(this).setTitle("Update Could Not Install")
-      .setMessage("Last time, the update did not actually install — this app is still on the older version. This usually happens when the currently installed app was signed with a different security key than the new update.\n\nOru vaati mattum: please UNINSTALL this app completely, then install the latest APK fresh. After that, future updates will apply automatically without any issue.")
-      .setPositiveButton("Uninstall Now",(d,w)->{
-        try{ startActivity(new Intent(Intent.ACTION_DELETE,Uri.parse("package:"+getPackageName()))); }
-        catch(Exception e){ toast("Settings > Apps > Kanakku Pulla PRO > Uninstall pannunga"); }
-      })
-      .setNegativeButton("Later",null).setCancelable(true).show();
   }
 
   public class PrinterBridge {
+    @JavascriptInterface public String getActivationState(){
+      try{return getSharedPreferences(NATIVE_STATE_PREFS,MODE_PRIVATE).getString(NATIVE_ACTIVATION_STATE,"");}
+      catch(Exception e){return "";}
+    }
+    @JavascriptInterface public void saveActivationState(String json){
+      try{
+        if(json==null||json.trim().isEmpty())return;
+        getSharedPreferences(NATIVE_STATE_PREFS,MODE_PRIVATE).edit().putString(NATIVE_ACTIVATION_STATE,json).apply();
+      }catch(Exception ignored){}
+    }
+    @JavascriptInterface public String getOrCreateDeviceId(String preferredId){
+      try{
+        SharedPreferences sp=getSharedPreferences(NATIVE_STATE_PREFS,MODE_PRIVATE);
+        String id=sp.getString(NATIVE_DEVICE_ID,"");
+        if(id!=null&&!id.isEmpty())return id;
+        // V19 -> V20 migration: preserve the exact already-activated device ID.
+        String preferred=preferredId==null?"":preferredId.trim();
+        if(!preferred.isEmpty()){
+          sp.edit().putString(NATIVE_DEVICE_ID,preferred).apply();
+          return preferred;
+        }
+        String idNew="KKP-"+nativeSeg()+"-"+nativeSeg()+"-"+nativeSeg();
+        sp.edit().putString(NATIVE_DEVICE_ID,idNew).apply();
+        return idNew;
+      }catch(Exception e){return "";}
+    }
     @JavascriptInterface public boolean available(){return bt!=null;}
     @JavascriptInterface public String printerName(){try{return socket!=null&&socket.isConnected()?socket.getRemoteDevice().getName():"Android Bluetooth Printer";}catch(Exception e){return "Android Bluetooth Printer";}}
     @JavascriptInterface public void connect(){runOnUiThread(()->ensurePermissionThenChoose());}
@@ -247,6 +283,11 @@ public class MainActivity extends Activity {
       });
     }
   }
+  private String nativeSeg(){
+    String raw=UUID.randomUUID().toString().replace("-","").toUpperCase(Locale.US);
+    return raw.substring(0,4);
+  }
+
   private boolean btPerm(){
     if(Build.VERSION.SDK_INT<31)return true;
     return checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)==PackageManager.PERMISSION_GRANTED

@@ -4407,13 +4407,48 @@ function toast(msg){
   clearTimeout(window._t); window._t=setTimeout(()=>t.style.display='none',2200);
 }
 
-function loadState(){
-  try{ return JSON.parse(localStorage.getItem(STORE_KEY))||{}; }catch(e){ return {}; }
+function kpNativeBridge(){
+  try{return (window.KPRO_NATIVE&&typeof window.KPRO_NATIVE.getActivationState==='function')?window.KPRO_NATIVE:null}catch(e){return null}
 }
-function saveState(s){ localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+function loadState(){
+  let local={};
+  try{ local=JSON.parse(localStorage.getItem(STORE_KEY))||{}; }catch(e){ local={}; }
+  const native=kpNativeBridge();
+  if(native){
+    try{
+      const raw=native.getActivationState();
+      const n=raw?JSON.parse(raw):null;
+      if(n&&typeof n==='object'){
+        // Native storage is the durable source for activation/device identity.
+        // Keep any newer non-critical metadata from local storage.
+        const merged={...local,...n};
+        localStorage.setItem(STORE_KEY,JSON.stringify(merged));
+        return merged;
+      }
+      // V19 -> V20 one-time migration: copy existing WebView activation into native storage.
+      if(local&&Object.keys(local).length){native.saveActivationState(JSON.stringify(local));}
+    }catch(e){}
+  }
+  return local;
+}
+function saveState(s){
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(s))}catch(e){}
+  const native=kpNativeBridge();
+  if(native){try{native.saveActivationState(JSON.stringify(s))}catch(e){}}
+}
 
 function ensureDeviceId(){
   let s=loadState();
+  const native=kpNativeBridge();
+  if(native){
+    try{
+      const nativeId=native.getOrCreateDeviceId(s.deviceId||'');
+      if(nativeId){
+        if(s.deviceId!==nativeId){s.deviceId=nativeId;saveState(s)}
+        return nativeId;
+      }
+    }catch(e){}
+  }
   if(!s.deviceId){
     const seg=()=>Math.random().toString(16).slice(2,6).toUpperCase();
     s.deviceId='KKP-'+seg()+'-'+seg()+'-'+seg();

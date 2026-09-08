@@ -1,6 +1,6 @@
 {
-  "versionCode": 19,
-  "versionName": "2.1.7-preview-print-alignment-v19",
+  "versionCode": 20,
+  "versionName": "2.1.8-update-safe-activation-v20",
   "apkUrl": "https://github.com/lovely3971/kpro-printer-android/releases/download/latest/app-debug.apk",
-  "notes": "V19: preserve V18 white-label/black-print polarity and render label millimetres directly at 203-DPI printer density so physical alignment matches the live preview."
+  "notes": "V20: preserves V19 print alignment, adds durable native activation/device identity, and prevents duplicate installer relaunch after updates."
 }
