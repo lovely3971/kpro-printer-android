@@ -5053,20 +5053,58 @@ window.addEventListener('load',()=>{if(!kpBtDirectSupported()){const h=document.
     return btoa(bin);
   }
 
+  /* Builds ONE PDF of the exact same 1-UP/2-UP/3-UP sheet that the existing working
+     browser print functions (printLabelHtml / anyBarcodePrintDocument / jewelleryPrintDocument)
+     already render correctly — same CSS grid, same column gap, same per-mode label markup —
+     just captured into a PDF instead of opened in a print popup. Barcode auto-fit, alignment,
+     and text positions are untouched; this only changes HOW the existing sheet is turned into
+     a file (for Share/Save and Wi-Fi/System Printer), not what the sheet looks like. */
   async function kpBuildLabelPdfBlob(jobs){
     if(!(await ensurePdfLibraries()))throw new Error('PDF engine unavailable');
-    let pdf=null;
-    for(const j of jobs){
-      const r=await kpRenderLabelCanvas(j.p);
-      const count=Math.max(1,Math.min(500,parseInt(j.count||1,10)));
-      for(let k=0;k<count;k++){
-        const orient=r.wmm>=r.hmm?'landscape':'portrait';
-        if(!pdf)pdf=new jspdf.jsPDF({orientation:orient,unit:'mm',format:[r.wmm,r.hmm],compress:true});
-        else pdf.addPage([r.wmm,r.hmm],orient);
-        pdf.addImage(r.canvas.toDataURL('image/png'),'PNG',0,0,r.wmm,r.hmm);
-      }
+    const mode=isAnyBarcodeMode()?'any':(isJewelleryMode()?'jewel':'normal');
+    const up=jewelLabelsPerRow();
+    const oneLabel=mode==='any'?anyBarcodeOneLabel:(mode==='jewel'?jewelleryOneLabel:barcodeOneLabel);
+    const labelsHtml=jobs.flatMap(j=>Array.from(
+      {length:Math.max(1,Math.min(500,parseInt(j.count||1,10)))},
+      ()=>oneLabel(j.p)
+    )).join('');
+    if(!labelsHtml)throw new Error('No labels');
+
+    let sheetWmm=0,sheetStyle='',sheetCss='';
+    if(mode==='any'){
+      const d=readAnyBarcodeDims();
+      sheetWmm=d.w;
+      sheetStyle=`width:${d.w}mm;display:grid;grid-template-columns:repeat(${up},${d.l}mm);column-gap:${d.gap}mm;row-gap:0;align-items:start`;
+      sheetCss=`.any-label{position:relative;width:${d.l}mm;height:${d.h}mm;box-sizing:border-box;background:#fff;color:#000;overflow:hidden;font-family:Arial,sans-serif}.kp-el{position:absolute!important;margin:0!important;color:#000!important;box-sizing:border-box;transform-origin:center center}.any-barcode-box{overflow:visible!important}.any-barcode-box .kp-bars{position:static!important;width:100%!important;height:100%!important;margin:0!important;transform:none!important;display:block!important}.kp-shop,.kp-code,.kp-variant,.kp-price{white-space:nowrap;overflow:hidden}.kp-bars{background:none!important;display:block!important}.kp-bars rect{shape-rendering:crispEdges}`;
+    }else if(mode==='jewel'){
+      sheetStyle=`display:grid;grid-template-columns:repeat(${up},max-content);gap:0;align-items:start`;
+      sheetCss='.jewel-tag{position:relative;display:flex;align-items:center;background:transparent;color:#000;font-family:Arial,sans-serif;box-sizing:border-box}.jewel-body{height:100%;background:#fff;position:relative;overflow:hidden;display:block;padding:.6mm 1mm;box-sizing:border-box}.jewel-body .kp-el{position:absolute!important;margin:0!important;box-sizing:border-box}.jewel-body .kp-pcs{align-self:auto!important}.jewel-body .jewel-barcode-box{position:absolute!important;box-sizing:border-box!important;overflow:visible!important}.jewel-body .jewel-barcode-box .kp-bars{position:static!important;width:100%!important;height:100%!important;margin:0!important;transform:none!important;display:block!important}.jewel-tail{background:#fff;position:relative;flex:none}.jewel-tag.butterfly .jewel-body:after{content:"";position:absolute;top:0;bottom:0;left:50%;border-left:.25mm dashed #aaa}.jewel-tag.dumbbell .jewel-body{clip-path:polygon(0 0,42% 0,46% 30%,54% 30%,58% 0,100% 0,100% 100%,58% 100%,54% 70%,46% 70%,42% 100%,0 100%)}.kp-el{position:relative;transform-origin:center;color:#000}.kp-shop{font-weight:800;line-height:1;white-space:nowrap}.kp-bars{background:none;display:block}.kp-code{font-weight:700;line-height:1}.kp-pcs{align-self:flex-start;font-weight:800;line-height:1}.kp-variant{line-height:1}.kp-price{font-weight:900;line-height:1}';
+    }else{
+      sheetWmm=(35*up)+(5*Math.max(0,up-1));
+      sheetStyle=`width:${sheetWmm}mm;display:grid;grid-template-columns:repeat(${up},35mm);column-gap:5mm;row-gap:0`;
+      sheetCss='.kp-label{width:35mm;height:22mm;box-sizing:border-box;padding:1mm 1.3mm .6mm;overflow:hidden;display:flex;flex-direction:column;align-items:center;font-family:Arial,sans-serif;position:relative}.kp-el{position:relative;transform-origin:center}.kp-shop{font-weight:800;line-height:1;white-space:nowrap}.kp-normal-barcode-box{display:block!important;overflow:visible!important;flex:0 0 auto!important;transform-origin:center center!important;margin:.4mm 0!important;max-width:32mm!important}.kp-normal-barcode-box>.kp-bars{display:block!important;width:100%!important;height:100%!important;margin:0!important;background:none!important;transform:none!important;overflow:visible!important}.kp-bars rect{shape-rendering:crispEdges}.kp-code{font-weight:700;line-height:1}.kp-pcs{align-self:flex-start;font-weight:800;line-height:1;margin-top:.2mm}.kp-variant{line-height:1;min-height:1.5mm}.kp-price{font-weight:900;line-height:1;margin-top:.15mm}';
     }
-    if(!pdf)throw new Error('No labels');
+
+    const host=document.createElement('div');
+    host.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;z-index:-1';
+    const styleTag=document.createElement('style');styleTag.textContent=sheetCss;
+    const sheet=document.createElement('div');sheet.className='sheet';sheet.style.cssText=sheetStyle;sheet.innerHTML=labelsHtml;
+    host.appendChild(styleTag);host.appendChild(sheet);
+    document.body.appendChild(host);
+    renderRealCode128(sheet);
+    await kpSleep(120);
+
+    const cssPxPerMm=96/25.4;
+    const rect=sheet.getBoundingClientRect();
+    const pageWmm=sheetWmm||Math.max(5,rect.width/cssPxPerMm);
+    const canvas=await window.html2canvas(sheet,{scale:3,backgroundColor:'#ffffff',useCORS:true,logging:false,scrollX:0,scrollY:0});
+    host.remove();
+
+    const pxPerMm=canvas.width/pageWmm;
+    const pageHmm=Math.max(5,canvas.height/pxPerMm);
+    const jsPDF=window.jspdf.jsPDF;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:[pageWmm,pageHmm],compress:true});
+    pdf.addImage(canvas.toDataURL('image/jpeg',0.97),'JPEG',0,0,pageWmm,pageHmm,undefined,'FAST');
     return pdf.output('blob');
   }
 
