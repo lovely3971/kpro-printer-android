@@ -1,6 +1,6 @@
 {
-  "versionCode": 20,
-  "versionName": "2.1.8-update-safe-activation-v20",
+  "versionCode": 21,
+  "versionName": "2.1.9",
   "apkUrl": "https://github.com/lovely3971/kpro-printer-android/releases/download/latest/app-debug.apk",
-  "notes": "V20: preserves V19 print alignment, adds durable native activation/device identity, and prevents duplicate installer relaunch after updates."
+  "notes": "V21: fixes Barcode Labels Bluetooth Printer routing while preserving existing billing, barcode alignment, TSPL, share/save, system print, activation, and back-flow behavior."
 }
