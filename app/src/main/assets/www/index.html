@@ -283,6 +283,44 @@ html.kp-native-android body.kp-activation-screen #screenActivate .design{width:1
 
 </style>
 <script>try{if(window.KPRO_NATIVE)document.documentElement.classList.add('kp-native-android')}catch(e){}</script>
+
+<style id="kpCompactBackRefreshV1">
+#kpBillingFloatNav{
+  left:auto!important;
+  right:14px!important;
+  bottom:max(10px,env(safe-area-inset-bottom))!important;
+  transform:none!important;
+  width:auto!important;
+  display:none!important;
+  grid-template-columns:auto auto!important;
+  gap:0!important;
+  padding:4px!important;
+  border:1px solid rgba(138,255,41,.38)!important;
+  border-radius:999px!important;
+  background:rgba(7,13,7,.94)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.42),0 0 18px rgba(138,255,41,.12)!important;
+  backdrop-filter:blur(10px);
+}
+#screenBillingApp.active #kpBillingFloatNav{display:grid!important}
+.kpBillingFloatBtn{
+  min-width:76px!important;
+  min-height:42px!important;
+  padding:8px 12px!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:transparent!important;
+  color:#eefbe8!important;
+  box-shadow:none!important;
+  font:800 12px/1 system-ui,-apple-system,Arial,sans-serif!important;
+}
+.kpBillingFloatBtn:first-child{border-right:1px solid rgba(138,255,41,.22)!important;border-radius:999px 0 0 999px!important}
+.kpBillingFloatBtn:last-child{border-radius:0 999px 999px 0!important}
+.kpBillingFloatBtn:active{background:rgba(138,255,41,.12)!important}
+@media(min-width:768px){
+  #kpBillingFloatNav{right:18px!important}
+  .kpBillingFloatBtn{min-width:86px!important}
+}
+</style>
 </head><body>
 <div id="kpBootGate" aria-label="Kanakku Pulla PRO loading">
   <div class="kpBootInner">
@@ -969,10 +1007,93 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
   }
 }
 </style>
+
+<style id="kpMobileSidebarAndLabelFlowV1">
+/* --- mobile drawer --- */
+#kpMobileMenuBtn{display:none}
+#kpMobileMenuBackdrop{display:none}
+.kpMobileDrawerHead,.kpMobileDrawerFooter{display:none}
+@media(max-width:800px){
+  body{padding-bottom:74px!important}
+  .wrap{padding:12px!important}
+  .header{position:sticky;top:0;z-index:1200;background:rgba(5,8,5,.96);padding:8px 2px 10px;margin-bottom:10px;backdrop-filter:blur(8px)}
+  #kpMobileMenuBtn{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2);color:var(--text);font-size:24px;cursor:pointer}
+  .header .brand{min-width:0;flex:1}
+  .header .brand-icon{width:42px;height:42px;flex:0 0 42px}
+  .header .brand-name{font-size:18px;white-space:nowrap}
+  .header .brand-sub{font-size:10.5px}
+  .header .header-right{display:none!important}
+
+  #kpMobileMenuBackdrop{position:fixed;inset:0;z-index:1998;background:rgba(0,0,0,.68);display:block;opacity:0;pointer-events:none;transition:opacity .2s ease}
+  body.kp-mobile-menu-open #kpMobileMenuBackdrop{opacity:1;pointer-events:auto}
+
+  #kpMobileSidebar.nav-scroll{
+    position:fixed!important;left:0!important;top:0!important;bottom:0!important;z-index:1999!important;
+    width:min(82vw,330px)!important;max-width:330px!important;
+    transform:translateX(-102%);transition:transform .24s ease;
+    background:linear-gradient(180deg,#081108,#061006)!important;border-right:1px solid var(--line)!important;
+    box-shadow:18px 0 55px rgba(0,0,0,.48);padding:18px 16px 16px!important;overflow-y:auto!important;
+    display:flex!important;flex-direction:column!important;
+  }
+  body.kp-mobile-menu-open #kpMobileSidebar{transform:translateX(0)}
+  .kpMobileDrawerHead{display:block;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+  .kpMobileDrawerHead .brand{margin-bottom:14px}
+  .kpMobileDrawerHead .header-right{display:flex!important;align-items:center;justify-content:space-between;gap:8px}
+  .kpMobileDrawerHead .header-right .user-chip{display:flex!important}
+  .kpMobileDrawerHead .header-right>.btn{display:inline-flex!important}
+  #mainNav.nav{
+    display:flex!important;flex-direction:column!important;gap:5px!important;width:100%!important;margin:0!important;flex-wrap:nowrap!important
+  }
+  #mainNav .nav-btn{
+    width:100%!important;height:auto!important;min-height:46px!important;padding:10px 12px!important;margin:0!important;
+    justify-content:flex-start!important;border-radius:11px!important;font-size:13px!important;overflow:visible!important
+  }
+  #mainNav .nav-btn.active{box-shadow:0 4px 18px rgba(var(--accent-rgb),.18)}
+  .kpMobileDrawerFooter{display:block;margin-top:auto;padding-top:16px;border-top:1px solid var(--line);color:var(--text-dim)}
+  .kpVersionBrand{font-size:12px;font-weight:900;color:var(--text)}
+  .kpVersionLine{font-size:11px;margin-top:5px}
+}
+/* --- approved label flow --- */
+#page-barcodes .barcode-preview-card{position:static!important}
+#page-barcodes .kpLabelTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+#page-barcodes .kpLabelTab{min-height:48px;border:1px solid var(--line);background:var(--panel);color:var(--text-dim);border-radius:11px;font-weight:900;cursor:pointer}
+#page-barcodes .kpLabelTab.active{background:linear-gradient(180deg,var(--accent-2),var(--accent));color:#071007;border-color:transparent;box-shadow:0 4px 16px rgba(var(--accent-rgb),.22)}
+#page-barcodes .kpLabelTabPage{display:none}
+#page-barcodes .kpLabelTabPage.active{display:block}
+#page-barcodes .kpLabelTwoActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+#page-barcodes .kpLabelTwoActions .btn{justify-content:center}
+#page-barcodes .kpLabelOverlay{position:fixed;inset:0;z-index:22000;background:rgba(0,0,0,.74);display:none;align-items:center;justify-content:center;padding:18px}
+#page-barcodes .kpLabelOverlay.show{display:flex}
+#page-barcodes .kpLabelModal{width:min(430px,94vw);background:var(--surface,#0d130d);border:1px solid var(--border,var(--line));border-radius:17px;padding:20px;box-shadow:0 22px 70px rgba(0,0,0,.5)}
+#page-barcodes .kpLabelModal h3{margin:0 0 10px;color:var(--text)}
+#page-barcodes .kpLabelModal p{margin:0 0 18px;color:var(--text-dim);line-height:1.45}
+#page-barcodes .kpLabelModalButtons{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#page-barcodes .kpLabelOutputBtn{width:100%;justify-content:flex-start;margin-bottom:9px;padding:13px 14px}
+#page-barcodes .bulk-row-final{display:flex;align-items:center;gap:10px;padding:11px 12px;margin-bottom:8px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2)}
+#page-barcodes .bulk-row-info{min-width:0;flex:1}
+#page-barcodes .bulk-row-name{font-weight:900;color:var(--text);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#page-barcodes .bulk-row-code{font-size:11.5px;color:var(--text-dim);margin-top:2px}
+#page-barcodes .bulk-row-actions{display:flex;align-items:center;gap:6px;flex:none}
+#page-barcodes .bulk-row-count{font-size:12.5px;font-weight:900;color:var(--text);white-space:nowrap;margin-right:2px}
+#page-barcodes .bulk-icon-btn{width:34px;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);padding:0;display:grid;place-items:center;cursor:pointer}
+#page-barcodes .bulk-icon-btn.delete{border-color:#5c2323;background:#251010}
+#page-barcodes #barcodeProductDetail{display:none!important}
+#page-barcodes #labelPreviewArea .kp-label,#page-barcodes #tabPreviewArea .kp-label,
+#page-barcodes #labelPreviewArea .jewel-body,#page-barcodes #tabPreviewArea .jewel-body,
+#page-barcodes #labelPreviewArea .any-label,#page-barcodes #tabPreviewArea .any-label{background:#fff!important;color:#000!important}
+#page-barcodes #labelPreviewArea .kp-el,#page-barcodes #tabPreviewArea .kp-el{color:#000!important}
+@media(max-width:600px){
+  #page-barcodes .card{padding:14px!important}
+  #page-barcodes .kpLabelTwoActions{grid-template-columns:1fr 1fr}
+  #page-barcodes .bulk-row-final{padding:10px}
+}
+</style>
+
 </head>
 <body>
 <div class="wrap">
 <div class="header">
+<button id="kpMobileMenuBtn" type="button" aria-label="Open menu" onclick="kpOpenMobileMenu()">☰</button>
 <div class="brand">
 <div class="brand-icon"><svg class="ic" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><rect height="10" rx="2" width="16" x="4" y="10"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></div>
 <div>
@@ -988,7 +1109,9 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 <button class="btn" type="button" onclick="parent.kpBillingLogout()"><svg class="ic" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M12 2v9"></path><path d="M18.4 6.6a9 9 0 1 1-12.8 0"></path></svg> Logout</button>
 </div>
 </div>
-<div class="nav-scroll">
+<div id="kpMobileMenuBackdrop" onclick="kpCloseMobileMenu()"></div>
+<div class="nav-scroll" id="kpMobileSidebar">
+<div class="kpMobileDrawerHead" id="kpMobileDrawerHead"></div>
 <div class="nav" id="mainNav">
 <button class="nav-btn active" data-page="dashboard"><svg class="ic" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><rect height="7" rx="1.5" width="7" x="3" y="3"></rect><rect height="7" rx="1.5" width="7" x="14" y="3"></rect><rect height="7" rx="1.5" width="7" x="3" y="14"></rect><rect height="7" rx="1.5" width="7" x="14" y="14"></rect></svg> Dashboard</button>
 <button class="nav-btn" data-page="billing"><svg class="ic" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"></path><path d="M15 2v5h5"></path><path d="M9 13h6"></path><path d="M9 17h6"></path></svg> Billing</button>
@@ -1002,6 +1125,10 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 <button class="nav-btn" data-page="reports"><svg class="ic" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M4 20V10"></path><path d="M12 20V4"></path><path d="M20 20v-7"></path></svg> Reports</button>
 <button class="nav-btn" data-page="teams"><svg class="ic" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><circle cx="7" cy="8" r="3"></circle><circle cx="17" cy="8" r="3"></circle><path d="M1 20c0-3.5 2.6-6 6-6s6 2.5 6 6"></path><path d="M11 20c0-3.5 2.6-6 6-6s6 2.5 6 6"></path></svg> Teams</button>
 <button class="nav-btn" data-page="settings"><svg class="ic" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg> Settings</button>
+</div>
+<div class="kpMobileDrawerFooter">
+  <div class="kpVersionBrand">Kanakku Pulla PRO</div>
+  <div class="kpVersionLine">Version <b id="kpSidebarVersion">—</b></div>
 </div>
 </div>
 <!-- DASHBOARD -->
@@ -1420,81 +1547,190 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 </div>
 <!-- BARCODES -->
 <div class="page" id="page-barcodes">
-<div class="section-title"><div class="section-title-left"><div class="section-icon"><svg class="ic" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="16" width="3" x="3" y="4"></rect><rect height="12" width="3" x="8" y="8"></rect><rect height="18" width="3" x="13" y="2"></rect><rect height="9" width="3" x="18" y="11"></rect></svg></div><div><h2>Barcodes &amp; Labels</h2><p>35 × 22 mm • 3-UP • 115 mm label designer</p></div></div></div>
-<div class="grid g2 barcode-pro-grid">
-<div>
-<div class="card">
-<h3 class="block-title">1. Label Details</h3>
-<div class="field"><label class="field-label">Label Type</label><select id="barcodeLabelType" onchange="changeBarcodeLabelType()"><option value="normal">Normal Barcode Label — 35 × 22 mm 3-UP</option><option value="rat100x15">Jewellery Rat-Tail — 100 × 15 mm</option><option value="butterfly70x15">Jewellery Butterfly / Fold — 70 × 15 mm</option><option value="dumbbell70x15">Jewellery Dumbbell — 70 × 15 mm</option><option value="rectangle35x15">Jewellery Rectangle — 35 × 15 mm</option><option value="loop100x13">Jewellery Loop / Wrap — 100 × 13 mm</option><option value="custom">Custom Jewellery Tag</option><option value="anybarcode">Any Barcode Label — Custom L / H / W</option></select></div>
-<div class="field"><label class="field-label">Printer Profile</label><select id="barcodePrinterProfile" onchange="barcodePrinterProfileChanged()"><option value="auto">Auto / Any Thermal Barcode Printer</option><option value="tsc-te244">TSC TE244 / TE244 Pro</option><option value="tvs-lp46">TVS LP 46 Neo / LP 46 Dlite</option><option value="zebra-zd220">Zebra ZD220 / ZD230</option><option value="xprinter-420b">Xprinter XP-420B / 470B</option><option value="godex-g500">GoDEX G500 / G530</option><option value="honeywell-pc42">Honeywell PC42 / PC42E-T</option><option value="argox-os214">Argox OS-214 Plus</option><option value="citizen-cl">Citizen CL Series</option><option value="custom-printer">Other / Custom Printer</option></select><div class="jewel-note" id="barcodePrinterHint" style="margin-top:6px">Auto profile — label dimensions stay exactly as designed. Final printer selection happens in the system print dialog.</div></div>
-<div class="jewel-settings" id="jewelTagSettings">
-<div class="field"><label class="field-label">Print Layout</label><select id="jewelLabelsPerRow" onchange="jewelLabelsPerRowChanged()"><option value="1">1-UP</option><option value="2">2-UP</option><option value="3">3-UP</option></select><div class="jewel-note" style="margin-top:6px">Available for every label type. Choose 1-UP, 2-UP or 3-UP without changing the label design.</div></div>
-<div class="jewel-grid">
-<div class="field"><label class="field-label">Total Length (mm)</label><input id="jewelTotalW" min="20" oninput="jewelDimChanged()" step="0.1" type="number" value="100"/></div>
-<div class="field"><label class="field-label">Height (mm)</label><input id="jewelHeight" min="5" oninput="jewelDimChanged()" step="0.1" type="number" value="15"/></div>
-<div class="field"><label class="field-label">Printable Body (mm)</label><input id="jewelBodyW" min="10" oninput="jewelDimChanged()" step="0.1" type="number" value="70"/></div>
-<div class="field"><label class="field-label">Tail Length (mm)</label><input id="jewelTailW" min="0" oninput="jewelDimChanged()" step="0.1" type="number" value="30"/></div>
-<div class="field"><label class="field-label">Tail Thickness (mm)</label><input id="jewelTailH" min="0" oninput="jewelDimChanged()" step="0.1" type="number" value="1.5"/></div>
-<div class="field"><label class="field-label">Perforation / Split (mm)</label><input id="jewelSplit" min="0" oninput="jewelDimChanged()" step="0.1" type="number" value="35"/></div>
-</div>
-<div class="jewel-actions"><input id="jewelPresetName" placeholder="Preset name, eg: Ring Tag 100x15" style="flex:1;min-width:220px"/><button class="btn btn-primary btn-sm" onclick="saveJewelleryPreset()">Save Size</button><button class="btn btn-dark btn-sm" onclick="deleteJewelleryPreset()">Delete Saved</button></div>
-<div class="field" style="margin-top:10px"><label class="field-label">Saved Tag Sizes</label><select id="jewelSavedSelect" onchange="loadSavedJewelleryPreset()"><option value="">Select saved size</option></select></div>
-<div class="jewel-note">All measurements work in physical millimetres. The printable content stays inside the tag body; the tail remains blank. The same real CODE128 and mm alignment controls are used.</div>
-</div>
-<div class="jewel-settings" id="anyBarcodeSettings" style="display:none">
-<div class="jewel-grid">
-<div class="field"><label class="field-label">Label Length (L) mm</label><input id="anyLabelLength" min="15" oninput="anyBarcodeDimChanged()" step="0.1" type="number" value="50"/></div>
-<div class="field"><label class="field-label">Label Height (H) mm</label><input id="anyLabelHeight" min="8" oninput="anyBarcodeDimChanged()" step="0.1" type="number" value="25"/></div>
-<div class="field"><label class="field-label">Roll Width (W) mm</label><input id="anyRollWidth" min="20" oninput="anyBarcodeDimChanged()" step="0.1" type="number" value="115"/></div>
-<div class="field"><label class="field-label">Gap Between Labels (mm)</label><input id="anyLabelGap" min="0" oninput="anyBarcodeDimChanged()" step="0.1" type="number" value="3"/></div>
-</div>
-<div class="jewel-note">Any Barcode Label uses the exact L / H / W entered here. Select 1-UP, 2-UP or 3-UP above. The label is never auto-scaled; mm alignment and real CODE128 stay editable.</div>
-</div>
-<div class="field"><label class="field-label">Shop Name</label><input id="barcodeShopName" oninput="previewLabelsLive()"/></div>
-<div class="field" style="margin-top:10px"><label class="field-label">Search Product</label><input id="barcodeSearch" oninput="filterBarcodeProducts()" placeholder="Search by product name, code or SKU..."/></div>
-<div class="field" style="margin-top:10px"><label class="field-label">Select Product</label><select id="barcodeProductSelect" onchange="selectBarcodeProduct()"><option value="">Select a product</option></select></div>
-<div class="select-product-box" id="barcodeProductDetail" style="display:none"><div class="prod-thumb"></div><div id="barcodeProductInfo"></div></div>
-<div class="grid g2" style="margin-top:12px"><div class="field"><label class="field-label">PCS Text (Optional)</label><input id="barcodePcsText" maxlength="16" oninput="previewLabelsLive()" value="PCS"/></div><div class="field"><label class="field-label">No. of Labels</label><input id="labelQty" max="500" min="1" type="number" value="3"/></div></div>
-<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn btn-primary" onclick="previewLabels()" style="flex:1">Preview Labels</button><button class="btn btn-dark" onclick="printBarcodeLabels()" style="flex:1">Print Labels</button><button class="btn btn-outline-accent" onclick="kpOpenBarcodePrintFlowUI('selected')" style="flex:1 1 100%">📱 Bluetooth Label Print</button></div>
-</div>
-<div class="card" style="margin-top:14px">
-<h3 class="block-title">2. Bulk Label Printing</h3>
-<div class="grid g2"><div class="field"><label class="field-label">Product</label><select id="bulkBarcodeProduct"></select></div><div class="field"><label class="field-label">No. of Labels</label><input id="bulkBarcodeQty" min="1" type="number" value="3"/></div></div>
-<div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-primary" onclick="addBulkBarcodeItem()" style="flex:1">+ Add Product</button><button class="btn btn-dark" onclick="clearBulkBarcodeItems()" style="flex:1">Clear</button></div>
-<div id="bulkBarcodeList" style="margin-top:12px"></div>
-<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-dark" onclick="previewBulkBarcodeLabels()" style="flex:1">Preview Bulk</button><button class="btn btn-primary" onclick="printBulkBarcodeLabels()" style="flex:1">Print All Labels</button><button class="btn btn-outline-accent" onclick="kpOpenBarcodePrintFlowUI('bulk')" style="flex:1 1 100%">📱 Bluetooth Print All</button></div>
-</div>
-<div class="card" style="margin-top:14px">
-<h3 class="block-title">3. Label Design &amp; Alignment</h3>
-<div class="barcode-design-lock" id="barcodeDesignLocked"><div><b>🔒 Design Locked</b><small>Saved alignment will be used for preview &amp; print.</small></div><button class="btn btn-dark btn-sm" onclick="editBarcodeDesign()">Edit Design</button></div>
-<div id="barcodeDesignEditor" style="display:none">
-<p class="barcode-help">Select an element, then use arrows to move it. A− / A+ changes its size.</p>
-<div class="barcode-chips" id="barcodeElementChips"></div>
-<div class="barcode-selected">Selected: <b id="barcodeSelectedName">Shop Name</b></div>
-<div class="barcode-pad"><button class="barcode-hold" data-action="move" data-value="up" onclick="moveBarcodeEl('up')">↑</button><button class="barcode-hold" data-action="move" data-value="left" onclick="moveBarcodeEl('left')">←</button><button class="barcode-reset-green" onclick="resetBarcodeEl()">RESET</button><button class="barcode-hold" data-action="move" data-value="right" onclick="moveBarcodeEl('right')">→</button><button class="barcode-hold" data-action="move" data-value="down" onclick="moveBarcodeEl('down')">↓</button></div>
-<div class="barcode-mm-readout"><span>X: <b id="barcodeXValue">0.0 mm</b></span><span>Y: <b id="barcodeYValue">0.0 mm</b></span></div>
-<div class="barcode-size-row"><span>Font / Element Size (mm)</span><div><button class="btn btn-dark btn-sm barcode-hold" data-action="size" data-value="-1" onclick="sizeBarcodeEl(-1)">A−</button><b id="barcodeSizeValue">0.0 mm</b><button class="btn btn-dark btn-sm barcode-hold" data-action="size" data-value="1" onclick="sizeBarcodeEl(1)">A+</button></div></div>
-<div class="barcode-help" style="margin-top:8px">Tip: press and hold arrows or A− / A+ for continuous mm adjustment.</div>
-<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-dark" onclick="resetAllBarcodeDesign()" style="flex:1">Reset All</button><button class="btn btn-primary" onclick="saveLockBarcodeDesign()" style="flex:1">Save &amp; Lock Design</button></div>
-<div style="margin-top:10px"><button class="btn btn-primary" onclick="openFixedBarcodeDesignConfirm()" style="width:100%;font-weight:900">📌 Fixed Design</button></div>
-</div>
-</div>
-</div>
-<div class="card barcode-preview-card">
-<h3 class="block-title" id="barcodePreviewTitle">4. Live 3-UP Preview</h3>
-<div class="barcode-preview-pro" id="barcodePreviewScroller"><div class="barcode-sheet-pro" id="labelPreviewArea"><span style="color:#888;padding:18px">Select a product to preview labels</span></div></div>
-<div class="barcode-preview-status" id="barcodePreviewStatus">Live Design Preview • 3-UP • 35 × 22 mm • 115 mm Roll Width</div>
-<div class="tip" style="margin-top:12px">35 × 22 mm labels • 3 labels per row • 5 mm gap • total width 115 mm</div>
-</div>
-</div>
-</div>
-<div id="fixedBarcodeDesignModal" style="display:none;position:fixed;inset:0;z-index:9900;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:18px">
-  <div style="width:min(420px,94vw);background:var(--surface,#0d130d);border:1px solid var(--border,#2a3a2a);border-radius:16px;padding:20px;box-shadow:0 22px 70px rgba(0,0,0,.5)">
-    <h3 style="margin:0 0 8px">Fixed Design</h3>
-    <p style="margin:0 0 18px;color:var(--text-dim,#b8c4b5);line-height:1.45">Save the same design for later?</p>
-    <div style="display:flex;gap:10px"><button class="btn btn-dark" onclick="closeFixedBarcodeDesignConfirm()" style="flex:1">NO</button><button class="btn btn-primary" onclick="confirmFixedBarcodeDesign()" style="flex:1">YES</button></div>
+  <div class="section-title">
+    <div class="section-title-left">
+      <div class="section-icon"><svg class="ic" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="16" width="3" x="3" y="4"></rect><rect height="12" width="3" x="8" y="8"></rect><rect height="18" width="3" x="13" y="2"></rect><rect height="9" width="3" x="18" y="11"></rect></svg></div>
+      <div><h2>Barcodes &amp; Labels</h2><p>35 × 22 mm • 3-UP • 115 mm label designer</p></div>
+    </div>
+  </div>
+
+  <div class="barcode-design-lock" id="kpLabelLockedBar" style="display:none;margin-bottom:14px">
+    <div><b>🔒 Design Locked</b><small>Saved label design will be used for preview &amp; print.</small></div>
+    <button class="btn btn-dark btn-sm" type="button" onclick="editBarcodeDesign()">Edit Design</button>
+  </div>
+
+  <div id="kpLabelSetupFlow">
+    <div class="card" id="setupDetailsCard">
+      <h3 class="block-title">1. Label Details</h3>
+
+      <div class="field"><label class="field-label">Label Type</label>
+        <select id="barcodeLabelType" onchange="changeBarcodeLabelType()">
+          <option value="normal">Normal Barcode Label — 35 × 22 mm 3-UP</option>
+          <option value="rat100x15">Jewellery Rat-Tail — 100 × 15 mm</option>
+          <option value="butterfly70x15">Jewellery Butterfly / Fold — 70 × 15 mm</option>
+          <option value="dumbbell70x15">Jewellery Dumbbell — 70 × 15 mm</option>
+          <option value="rectangle35x15">Jewellery Rectangle — 35 × 15 mm</option>
+          <option value="loop100x13">Jewellery Loop / Wrap — 100 × 13 mm</option>
+          <option value="custom">Custom Jewellery Tag</option>
+          <option value="anybarcode">Any Barcode Label — Custom L / H / W</option>
+        </select>
+      </div>
+
+      <div class="field"><label class="field-label">Printer Profile / Select Printer</label>
+        <select id="barcodePrinterProfile" onchange="barcodePrinterProfileChanged()">
+          <option value="auto">Auto / Any Thermal Barcode Printer</option>
+          <option value="tsc-te244">TSC TE244 / TE244 Pro</option>
+          <option value="tvs-lp46">TVS LP 46 Neo / LP 46 Dlite</option>
+          <option value="zebra-zd220">Zebra ZD220 / ZD230</option>
+          <option value="xprinter-420b">Xprinter XP-420B / 470B</option>
+          <option value="godex-g500">GoDEX G500 / G530</option>
+          <option value="honeywell-pc42">Honeywell PC42 / PC42E-T</option>
+          <option value="argox-os214">Argox OS-214 Plus</option>
+          <option value="citizen-cl">Citizen CL Series</option>
+          <option value="custom-printer">Other / Custom Printer</option>
+        </select>
+        <div class="jewel-note" id="barcodePrinterHint" style="margin-top:6px">Auto profile — label dimensions stay exactly as designed. Final printer selection happens in the system print dialog.</div>
+      </div>
+
+      <div class="field" id="printLayoutField">
+        <label class="field-label">Print Layout</label>
+        <select id="jewelLabelsPerRow" onchange="jewelLabelsPerRowChanged()">
+          <option value="1">1-UP</option>
+          <option value="2">2-UP</option>
+          <option value="3">3-UP</option>
+        </select>
+        <div class="jewel-note" style="margin-top:6px">Available for every label type. Choose 1-UP, 2-UP or 3-UP without changing the label design.</div>
+      </div>
+
+      <div class="jewel-settings" id="jewelTagSettings">
+        <div class="jewel-grid">
+          <div class="field"><label class="field-label">Total Length (mm)</label><input id="jewelTotalW" min="20" oninput="jewelDimChanged()" step="0.1" type="number" value="100"/></div>
+          <div class="field"><label class="field-label">Height (mm)</label><input id="jewelHeight" min="5" oninput="jewelDimChanged()" step="0.1" type="number" value="15"/></div>
+          <div class="field"><label class="field-label">Printable Body (mm)</label><input id="jewelBodyW" min="10" oninput="jewelDimChanged()" step="0.1" type="number" value="70"/></div>
+          <div class="field"><label class="field-label">Tail Length (mm)</label><input id="jewelTailW" min="0" oninput="jewelDimChanged()" step="0.1" type="number" value="30"/></div>
+          <div class="field"><label class="field-label">Tail Thickness (mm)</label><input id="jewelTailH" min="0" oninput="jewelDimChanged()" step="0.1" type="number" value="1.5"/></div>
+          <div class="field"><label class="field-label">Perforation / Split (mm)</label><input id="jewelSplit" min="0" oninput="jewelDimChanged()" step="0.1" type="number" value="35"/></div>
+        </div>
+        <div class="jewel-actions"><input id="jewelPresetName" placeholder="Preset name, eg: Ring Tag 100x15" style="flex:1;min-width:220px"/><button class="btn btn-primary btn-sm" onclick="saveJewelleryPreset()">Save Size</button><button class="btn btn-dark btn-sm" onclick="deleteJewelleryPreset()">Delete Saved</button></div>
+        <div class="field" style="margin-top:10px"><label class="field-label">Saved Tag Sizes</label><select id="jewelSavedSelect" onchange="loadSavedJewelleryPreset()"><option value="">Select saved size</option></select></div>
+      </div>
+
+      <div class="jewel-settings" id="anyBarcodeSettings" style="display:none">
+        <div class="jewel-grid">
+          <div class="field"><label class="field-label">Label Length (L) mm</label><input id="anyLabelLength" min="15" oninput="anyBarcodeDimChanged()" step="0.1" type="number" value="50"/></div>
+          <div class="field"><label class="field-label">Label Height (H) mm</label><input id="anyLabelHeight" min="8" oninput="anyBarcodeDimChanged()" step="0.1" type="number" value="25"/></div>
+          <div class="field"><label class="field-label">Roll Width (W) mm</label><input id="anyRollWidth" min="20" oninput="anyBarcodeDimChanged()" step="0.1" type="number" value="115"/></div>
+          <div class="field"><label class="field-label">Gap Between Labels (mm)</label><input id="anyLabelGap" min="0" oninput="anyBarcodeDimChanged()" step="0.1" type="number" value="3"/></div>
+        </div>
+        <div class="jewel-note">Any Barcode Label uses the exact L / H / W entered here. Select 1-UP, 2-UP or 3-UP above. The label is never auto-scaled; mm alignment and real CODE128 stay editable.</div>
+      </div>
+
+      <div class="field"><label class="field-label">Shop Name</label><input id="barcodeShopName" oninput="previewLabelsLive()"/></div>
+      <div class="field" style="margin-top:10px"><label class="field-label">Sample Product for Design</label>
+        <input id="barcodeSearch" oninput="filterBarcodeProducts()" placeholder="Search by product name, code or SKU..." style="margin-bottom:8px"/>
+        <select id="barcodeProductSelect" onchange="selectBarcodeProduct()"><option value="">Select a sample product</option></select>
+      </div>
+      <div id="barcodeProductDetail" style="display:none!important"><div id="barcodeProductInfo"></div></div>
+      <div class="field"><label class="field-label">PCS Text (Optional)</label><input id="barcodePcsText" maxlength="16" oninput="previewLabelsLive()" value="PCS"/></div>
+    </div>
+
+    <div class="card barcode-preview-card" id="livePreviewCard" style="margin-top:14px">
+      <h3 class="block-title" id="barcodePreviewTitle">Live 3-UP Preview</h3>
+      <div class="barcode-preview-pro" id="barcodePreviewScroller"><div class="barcode-sheet-pro" id="labelPreviewArea"><span style="color:#555;padding:18px">Select a product to preview labels</span></div></div>
+      <div class="barcode-preview-status" id="barcodePreviewStatus" style="margin-top:10px;font-size:12px;color:var(--text-dim)">Live Design Preview • 3-UP • 35 × 22 mm • 115 mm Roll Width</div>
+      <div class="tip">35 × 22 mm labels • 3 labels per row • 5 mm gap • total width 115 mm</div>
+    </div>
+
+    <div id="designAlignCard" class="card" style="margin-top:14px">
+      <h3 class="block-title">2. Label Design &amp; Alignment</h3>
+      <div id="barcodeDesignLocked" style="display:none"></div>
+      <div id="barcodeDesignEditor" style="display:block">
+        <p class="barcode-help">Select an element, then use arrows to move it. A− / A+ changes its size.</p>
+        <div class="barcode-chips" id="barcodeElementChips"></div>
+        <div class="barcode-selected">Selected: <b id="barcodeSelectedName">Shop Name</b></div>
+        <div class="barcode-pad">
+          <button class="barcode-hold" data-action="move" data-value="up" onclick="moveBarcodeEl('up')">↑</button>
+          <button class="barcode-hold" data-action="move" data-value="left" onclick="moveBarcodeEl('left')">←</button>
+          <button class="barcode-reset-green" onclick="resetBarcodeEl()">RESET</button>
+          <button class="barcode-hold" data-action="move" data-value="right" onclick="moveBarcodeEl('right')">→</button>
+          <button class="barcode-hold" data-action="move" data-value="down" onclick="moveBarcodeEl('down')">↓</button>
+        </div>
+        <div class="barcode-mm-readout"><span>X: <b id="barcodeXValue">0.0 mm</b></span><span>Y: <b id="barcodeYValue">0.0 mm</b></span></div>
+        <div class="barcode-size-row"><span>Font / Element Size (mm)</span><div><button class="btn btn-dark btn-sm barcode-hold" data-action="size" data-value="-1" onclick="sizeBarcodeEl(-1)">A−</button><b id="barcodeSizeValue">0.0 mm</b><button class="btn btn-dark btn-sm barcode-hold" data-action="size" data-value="1" onclick="sizeBarcodeEl(1)">A+</button></div></div>
+        <div class="barcode-help" style="margin-top:8px">Tip: press and hold arrows or A− / A+ for continuous mm adjustment.</div>
+        <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-dark" onclick="resetAllBarcodeDesign()" style="flex:1">Reset All</button></div>
+        <div style="margin-top:10px"><button class="btn btn-primary" onclick="openFixedBarcodeDesignConfirm()" style="width:100%;font-weight:900">📌 Fixed Design / Save for Later</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabsArea" style="display:none;margin-top:14px">
+    <div class="kpLabelTabs">
+      <button class="kpLabelTab active" id="tabBtnSingle" type="button" onclick="switchLabelTab('single')">Single Label</button>
+      <button class="kpLabelTab" id="tabBtnBulk" type="button" onclick="switchLabelTab('bulk')">Bulk Labels</button>
+    </div>
+
+    <div class="card kpLabelTabPage active" id="tabSingle">
+      <div class="field"><label class="field-label">Search Product</label><input id="singleSearch" oninput="filterSingleLabelProducts()" placeholder="Search by product name, code or SKU..."/></div>
+      <div class="field"><label class="field-label">Select Product</label><select id="singleProductSelect" onchange="pickSingleLabelProduct()"><option value="">Select a product</option></select></div>
+      <div class="field"><label class="field-label">No. of Labels</label><input id="labelQty" max="500" min="1" type="number" value="3"/></div>
+      <div class="kpLabelTwoActions"><button class="btn btn-primary" type="button" onclick="previewLabels()">Preview Labels</button><button class="btn btn-dark" type="button" onclick="kpOpenUnifiedLabelPrint('single')">Print Labels</button></div>
+    </div>
+
+    <div class="card kpLabelTabPage" id="tabBulk">
+      <div class="grid g2">
+        <div class="field"><label class="field-label">Product</label><select id="bulkBarcodeProduct"></select></div>
+        <div class="field"><label class="field-label">No. of Labels</label><input id="bulkBarcodeQty" min="1" type="number" value="3"/></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-primary" onclick="addBulkBarcodeItem()" style="flex:1">Add Product</button><button class="btn btn-dark" onclick="clearBulkBarcodeItems()" style="flex:1">Clear</button></div>
+      <div id="bulkBarcodeList" style="margin-top:14px"></div>
+      <div class="kpLabelTwoActions" style="margin-top:12px"><button class="btn btn-primary" type="button" onclick="previewBulkBarcodeLabels()">Preview Labels</button><button class="btn btn-dark" type="button" onclick="kpOpenUnifiedLabelPrint('bulk')">Print Labels</button></div>
+    </div>
+
+    <div class="card barcode-preview-card" id="tabPreviewCard" style="display:none;margin-top:14px">
+      <h3 class="block-title" id="tabPreviewTitle">Label Preview</h3>
+      <div class="barcode-preview-pro" id="tabPreviewScroller"><div class="barcode-sheet-pro" id="tabPreviewArea"></div></div>
+      <div class="barcode-preview-status" id="tabPreviewStatus" style="margin-top:10px;font-size:12px;color:var(--text-dim)"></div>
+    </div>
   </div>
 </div>
+
+<div id="fixedBarcodeDesignModal" class="kpLabelOverlay">
+  <div class="kpLabelModal">
+    <h3>Fixed Design</h3>
+    <p>Save the same design for later?</p>
+    <div class="kpLabelModalButtons"><button class="btn btn-dark" onclick="closeFixedBarcodeDesignConfirm()">NO</button><button class="btn btn-primary" onclick="confirmFixedBarcodeDesign()">YES</button></div>
+  </div>
+</div>
+
+<div id="bulkQtyEditModal" class="kpLabelOverlay">
+  <div class="kpLabelModal">
+    <h3>Edit No. of Labels</h3>
+    <div id="bulkQtyEditName" style="font-weight:800;margin-bottom:3px"></div>
+    <div id="bulkQtyEditCode" style="font-size:12px;color:var(--text-dim);margin-bottom:14px"></div>
+    <div class="field"><label class="field-label">No. of Labels</label><input id="bulkQtyEditInput" type="number" min="1" max="500" value="1"/></div>
+    <div class="kpLabelModalButtons"><button class="btn btn-primary" onclick="saveBulkQtyEdit()">Save</button><button class="btn btn-dark" onclick="closeBulkQtyEdit()">Cancel</button></div>
+  </div>
+</div>
+
+<div id="bulkDeleteConfirmModal" class="kpLabelOverlay">
+  <div class="kpLabelModal">
+    <h3>Delete Product?</h3>
+    <p>Delete this product from bulk labels?</p>
+    <div class="kpLabelModalButtons"><button class="btn btn-danger-line" onclick="confirmBulkDelete()">YES</button><button class="btn btn-dark" onclick="closeBulkDeleteConfirm()">NO</button></div>
+  </div>
+</div>
+
+<div id="kpUnifiedLabelPrintModal" class="kpLabelOverlay">
+  <div class="kpLabelModal">
+    <h3>Print Labels</h3>
+    <button class="btn btn-dark kpLabelOutputBtn" onclick="kpUnifiedLabelOutput('bluetooth')">📶 Bluetooth Printer</button>
+    <button class="btn btn-dark kpLabelOutputBtn" onclick="kpUnifiedLabelOutput('system')">🖨️ Wi-Fi / System Printer</button>
+    <button class="btn btn-dark kpLabelOutputBtn" onclick="kpUnifiedLabelOutput('share')">📤 Share / Save</button>
+    <button class="btn btn-primary kpLabelOutputBtn" onclick="kpCloseUnifiedLabelPrint()">Cancel</button>
+  </div>
+</div>
+
 <!-- SHIPPING LABELS -->
 <div class="page" id="page-shipping">
 <div class="section-title"><div class="section-title-left"><div class="section-icon">🏷️</div><div><h2>Shipping Labels</h2><p>Create, save and print clean 4×6 shipping labels</p></div></div></div>
@@ -4368,6 +4604,265 @@ window.addEventListener('load',()=>{if(!kpBtDirectSupported()){const h=document.
  });
 })();
 </script>
+
+<script id="kpMobileSidebarAndLabelFlowJSV1">
+(function(){
+  /* ===== MOBILE SIDEBAR ===== */
+  window.kpOpenMobileMenu=function(){document.body.classList.add('kp-mobile-menu-open')};
+  window.kpCloseMobileMenu=function(){document.body.classList.remove('kp-mobile-menu-open')};
+
+  function kpBuildMobileDrawer(){
+    const head=document.getElementById('kpMobileDrawerHead');
+    if(head && !head.dataset.ready){
+      const brand=document.querySelector('.header>.brand');
+      const hr=document.querySelector('.header>.header-right');
+      if(brand)head.appendChild(brand.cloneNode(true));
+      if(hr)head.appendChild(hr.cloneNode(true));
+      head.dataset.ready='1';
+    }
+    document.querySelectorAll('#mainNav .nav-btn').forEach(btn=>{
+      if(btn.dataset.kpDrawerBound)return;
+      btn.dataset.kpDrawerBound='1';
+      btn.addEventListener('click',()=>setTimeout(kpCloseMobileMenu,20));
+    });
+    let v='';
+    try{
+      if(window.KPRO_NATIVE && typeof KPRO_NATIVE.getAppVersionName==='function')v=KPRO_NATIVE.getAppVersionName()||'';
+      else if(parent && parent.KPRO_NATIVE && typeof parent.KPRO_NATIVE.getAppVersionName==='function')v=parent.KPRO_NATIVE.getAppVersionName()||'';
+    }catch(e){}
+    const el=document.getElementById('kpSidebarVersion');
+    if(el)el.textContent=v||'App';
+  }
+
+  /* ===== LABEL FLOW ===== */
+  const KP_LABEL_FLOW_FIXED_KEY='kp_pro_fixed_barcode_design_v15';
+
+  window.kpPopulateLabelFlowProducts=function(){
+    const productOptions=DB.products.map(p=>`<option value="${p.id}">${p.name} (${p.code||p.sku||''})</option>`).join('');
+    const s=document.getElementById('singleProductSelect');
+    if(s){const cur=s.value;s.innerHTML='<option value="">Select a product</option>'+productOptions;if(cur&&[...s.options].some(o=>o.value===cur))s.value=cur}
+    const b=document.getElementById('bulkBarcodeProduct');
+    if(b){const cur=b.value;b.innerHTML='<option value="">Select a product</option>'+productOptions;if(cur&&[...b.options].some(o=>o.value===cur))b.value=cur}
+    const sample=document.getElementById('barcodeProductSelect');
+    if(sample && sample.options.length<=1)sample.innerHTML='<option value="">Select a sample product</option>'+productOptions;
+  };
+
+  window.filterSingleLabelProducts=function(){
+    const q=(document.getElementById('singleSearch')?.value||'').toLowerCase();
+    const sel=document.getElementById('singleProductSelect');if(!sel)return;
+    const cur=sel.value;
+    const list=DB.products.filter(p=>!q||String(p.name||'').toLowerCase().includes(q)||String(p.code||'').toLowerCase().includes(q)||String(p.sku||'').toLowerCase().includes(q));
+    sel.innerHTML='<option value="">Select a product</option>'+list.map(p=>`<option value="${p.id}">${p.name} (${p.code||p.sku||''})</option>`).join('');
+    if(cur&&[...sel.options].some(o=>o.value===cur))sel.value=cur;
+  };
+
+  window.pickSingleLabelProduct=function(){
+    const id=document.getElementById('singleProductSelect')?.value||'';
+    selectedBarcodeProduct=DB.products.find(p=>p.id===id)||null;
+  };
+
+  function kpFixedSnap(){
+    const snap={
+      version:2,
+      type:currentLabelType(),
+      labelsPerRow:jewelLabelsPerRow(),
+      printerProfile:document.getElementById('barcodePrinterProfile')?.value||'auto',
+      shopName:document.getElementById('barcodeShopName')?.value||'',
+      pcsText:document.getElementById('barcodePcsText')?.value||'PCS',
+      design:JSON.parse(JSON.stringify(barcodeDesign||{}))
+    };
+    if(isJewelleryMode())snap.jewelDims=readJewelDims();
+    if(isAnyBarcodeMode())snap.anyDims=readAnyBarcodeDims();
+    return snap;
+  }
+
+  window.enterLockedMode=function(){
+    barcodeEditing=false;
+    const setup=document.getElementById('kpLabelSetupFlow');if(setup)setup.style.display='none';
+    const locked=document.getElementById('kpLabelLockedBar');if(locked)locked.style.display='flex';
+    const tabs=document.getElementById('tabsArea');if(tabs)tabs.style.display='block';
+    const tabPreview=document.getElementById('tabPreviewCard');if(tabPreview)tabPreview.style.display='none';
+    kpPopulateLabelFlowProducts();
+  };
+
+  window.editBarcodeDesign=function(){
+    barcodeEditing=true;
+    const setup=document.getElementById('kpLabelSetupFlow');if(setup)setup.style.display='block';
+    const locked=document.getElementById('kpLabelLockedBar');if(locked)locked.style.display='none';
+    const tabs=document.getElementById('tabsArea');if(tabs)tabs.style.display='none';
+    const editor=document.getElementById('barcodeDesignEditor');if(editor)editor.style.display='block';
+    renderBarcodeEditor();previewLabelsLive();
+    setTimeout(()=>document.getElementById('setupDetailsCard')?.scrollIntoView({behavior:'smooth',block:'start'}),30);
+  };
+
+  window.openFixedBarcodeDesignConfirm=function(){document.getElementById('fixedBarcodeDesignModal')?.classList.add('show')};
+  window.closeFixedBarcodeDesignConfirm=function(){document.getElementById('fixedBarcodeDesignModal')?.classList.remove('show')};
+
+  window.confirmFixedBarcodeDesign=function(){
+    try{localStorage.setItem(KP_LABEL_FLOW_FIXED_KEY,JSON.stringify(kpFixedSnap()));saveBarcodeDesign()}
+    catch(e){toast('Unable to save fixed design');return}
+    closeFixedBarcodeDesignConfirm();enterLockedMode();toast('Fixed design saved for later');
+  };
+
+  window.applyFixedBarcodeDesign=function(){
+    let snap=null;try{snap=JSON.parse(localStorage.getItem(KP_LABEL_FLOW_FIXED_KEY)||'null')}catch(e){}
+    if(!snap||!snap.type||!snap.design)return false;
+    const typeEl=document.getElementById('barcodeLabelType');
+    if(typeEl&&[...typeEl.options].some(o=>o.value===snap.type))typeEl.value=snap.type;
+    changeBarcodeLabelType();
+    const up=document.getElementById('jewelLabelsPerRow');if(up&&snap.labelsPerRow)up.value=String(Math.max(1,Math.min(3,Number(snap.labelsPerRow)||1)));
+    const pp=document.getElementById('barcodePrinterProfile');if(pp&&snap.printerProfile&&[...pp.options].some(o=>o.value===snap.printerProfile))pp.value=snap.printerProfile;
+    const shop=document.getElementById('barcodeShopName');if(shop&&snap.shopName!=null)shop.value=snap.shopName;
+    const pcs=document.getElementById('barcodePcsText');if(pcs&&snap.pcsText!=null)pcs.value=snap.pcsText;
+    if(snap.jewelDims&&isJewelleryMode())writeJewelDims(snap.jewelDims);
+    if(snap.anyDims&&isAnyBarcodeMode())[['anyLabelLength','l'],['anyLabelHeight','h'],['anyRollWidth','w'],['anyLabelGap','gap']].forEach(([id,k])=>{const e=document.getElementById(id);if(e&&snap.anyDims[k]!=null)e.value=snap.anyDims[k]});
+    barcodeDesign=JSON.parse(JSON.stringify(snap.design));
+    try{activeBarcodeLayoutType=snap.type}catch(e){}
+    renderBarcodeEditor();previewLabelsLive();enterLockedMode();return true;
+  };
+
+  window.switchLabelTab=function(which){
+    const single=which==='single';
+    document.getElementById('tabBtnSingle')?.classList.toggle('active',single);
+    document.getElementById('tabBtnBulk')?.classList.toggle('active',!single);
+    document.getElementById('tabSingle')?.classList.toggle('active',single);
+    document.getElementById('tabBulk')?.classList.toggle('active',!single);
+    const p=document.getElementById('tabPreviewCard');if(p)p.style.display='none';
+  };
+
+  window.kpOpenTabPreview=function(mode){
+    const source=document.getElementById('labelPreviewArea'),dest=document.getElementById('tabPreviewArea'),card=document.getElementById('tabPreviewCard');
+    if(!source||!dest||!card)return;
+    dest.className=source.className;dest.style.cssText=source.style.cssText;dest.innerHTML=source.innerHTML;renderRealCode128(dest);
+    const title=document.getElementById('tabPreviewTitle');if(title)title.textContent=mode==='bulk'?'Bulk Labels Preview':'Single Label Preview';
+    const st=document.getElementById('tabPreviewStatus'),srcSt=document.getElementById('barcodePreviewStatus');if(st)st.textContent=srcSt?.textContent||'';
+    const sc=document.getElementById('tabPreviewScroller');if(sc){sc.style.overflowX='auto';sc.style.overflowY='visible'}
+    card.style.display='block';setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'start'}),50);
+  };
+
+  window.previewLabels=function(){
+    pickSingleLabelProduct();
+    if(!selectedBarcodeProduct){toast('Select a product first');return}
+    const qty=Math.max(1,Math.min(500,parseInt(document.getElementById('labelQty')?.value||1,10)));
+    if(isAnyBarcodeMode()){
+      renderAnyBarcodePreview(Array.from({length:qty},()=>selectedBarcodeProduct));
+    }else if(isJewelleryMode()){
+      renderJewelleryPreview(Array.from({length:qty},()=>selectedBarcodeProduct));
+    }else{
+      const up=jewelLabelsPerRow(),area=document.getElementById('labelPreviewArea'),sc=document.getElementById('barcodePreviewScroller');
+      area.classList.remove('jewel-preview-wrap','any-barcode-wrap','bulk-preview-mode');area.classList.add('barcode-sheet-pro','normal-mm-sheet');
+      area.style.gridTemplateColumns=`repeat(${up},35mm)`;area.style.columnGap='5mm';area.style.rowGap='0';area.style.minWidth=((35*up)+(5*Math.max(0,up-1))+8)+'mm';
+      if(sc)sc.classList.add('bulk-scroll');
+      area.innerHTML=Array.from({length:qty},()=>barcodeOneLabel(selectedBarcodeProduct)).join('');renderRealCode128(area);bindPreviewElements();
+      const st=document.getElementById('barcodePreviewStatus');if(st)st.textContent=`${qty} Labels • ${up}-UP • 35 × 22 mm`;
+      const title=document.getElementById('barcodePreviewTitle');if(title)title.textContent=`Live ${up}-UP Preview`;
+    }
+    kpOpenTabPreview('single');
+  };
+
+  const kpOriginalBulkPreview=window.previewBulkBarcodeLabels;
+  window.previewBulkBarcodeLabels=function(){
+    if(!bulkBarcodeItems.length){toast('Add products to bulk list');return}
+    if(typeof kpOriginalBulkPreview==='function')kpOriginalBulkPreview();
+    kpOpenTabPreview('bulk');
+  };
+
+  window.renderBulkBarcodeList=function(){
+    const box=document.getElementById('bulkBarcodeList');if(!box)return;
+    box.innerHTML=bulkBarcodeItems.length?bulkBarcodeItems.map(x=>{
+      const p=DB.products.find(q=>q.id===x.id);
+      return `<div class="bulk-row-final">
+        <div class="bulk-row-info"><div class="bulk-row-name">${p?.name||'Product'}</div><div class="bulk-row-code">${p?.code||p?.sku||''}</div></div>
+        <div class="bulk-row-actions"><span class="bulk-row-count">${x.qty} labels</span>
+        <button class="bulk-icon-btn" type="button" onclick="kpOpenBulkQtyEdit('${x.id}')" title="Edit">✏️</button>
+        <button class="bulk-icon-btn delete" type="button" onclick="kpOpenBulkDelete('${x.id}')" title="Delete">🗑️</button></div>
+      </div>`;
+    }).join(''):'<div style="font-size:11.5px;color:var(--text-dim)">No bulk products added yet.</div>';
+  };
+
+  let kpBulkEditId=null,kpBulkDeleteId=null;
+  window.kpOpenBulkQtyEdit=function(id){
+    const x=bulkBarcodeItems.find(q=>q.id===id);if(!x)return;const p=DB.products.find(q=>q.id===id);kpBulkEditId=id;
+    document.getElementById('bulkQtyEditName').textContent=p?.name||'Product';document.getElementById('bulkQtyEditCode').textContent=p?.code||p?.sku||'';
+    document.getElementById('bulkQtyEditInput').value=Math.max(1,parseInt(x.qty||1,10));document.getElementById('bulkQtyEditModal').classList.add('show');
+  };
+  window.closeBulkQtyEdit=function(){document.getElementById('bulkQtyEditModal')?.classList.remove('show');kpBulkEditId=null};
+  window.saveBulkQtyEdit=function(){
+    const x=bulkBarcodeItems.find(q=>q.id===kpBulkEditId);if(!x)return closeBulkQtyEdit();
+    x.qty=Math.max(1,Math.min(500,parseInt(document.getElementById('bulkQtyEditInput').value||1,10)));renderBulkBarcodeList();closeBulkQtyEdit();toast('Label count updated');
+  };
+  window.kpOpenBulkDelete=function(id){kpBulkDeleteId=id;document.getElementById('bulkDeleteConfirmModal')?.classList.add('show')};
+  window.closeBulkDeleteConfirm=function(){document.getElementById('bulkDeleteConfirmModal')?.classList.remove('show');kpBulkDeleteId=null};
+  window.confirmBulkDelete=function(){
+    if(!kpBulkDeleteId)return closeBulkDeleteConfirm();bulkBarcodeItems=bulkBarcodeItems.filter(q=>q.id!==kpBulkDeleteId);renderBulkBarcodeList();closeBulkDeleteConfirm();toast('Product removed');
+  };
+
+  let kpUnifiedMode='single';
+  function kpJobs(mode){
+    if(mode==='bulk'){
+      if(!bulkBarcodeItems.length){toast('Add products to bulk list');return []}
+      return bulkBarcodeItems.map(x=>({p:DB.products.find(q=>q.id===x.id),count:Math.max(1,Math.min(500,parseInt(x.qty||1,10)))})).filter(x=>x.p);
+    }
+    pickSingleLabelProduct();if(!selectedBarcodeProduct){toast('Select a product first');return []}
+    return [{p:selectedBarcodeProduct,count:Math.max(1,Math.min(500,parseInt(document.getElementById('labelQty')?.value||1,10)))}];
+  }
+  window.kpOpenUnifiedLabelPrint=function(mode){if(!kpJobs(mode).length)return;kpUnifiedMode=mode;document.getElementById('kpUnifiedLabelPrintModal')?.classList.add('show')};
+  window.kpCloseUnifiedLabelPrint=function(){document.getElementById('kpUnifiedLabelPrintModal')?.classList.remove('show')};
+
+  function kpSystemLabelPrint(jobs){
+    if(isAnyBarcodeMode()){
+      const out=jobs.flatMap(j=>Array.from({length:j.count},()=>anyBarcodeOneLabel(j.p))).join('');return anyBarcodePrintDocument(out);
+    }
+    if(isJewelleryMode()){
+      const out=jobs.flatMap(j=>Array.from({length:j.count},()=>jewelleryOneLabel(j.p))).join('');return jewelleryPrintDocument(out);
+    }
+    const out=jobs.flatMap(j=>Array.from({length:j.count},()=>barcodeOneLabel(j.p))).join('');return printLabelHtml(out);
+  }
+
+  window.kpUnifiedLabelOutput=async function(method){
+    const jobs=kpJobs(kpUnifiedMode);if(!jobs.length){kpCloseUnifiedLabelPrint();return}
+    kpCloseUnifiedLabelPrint();
+    try{
+      if(method==='bluetooth'){
+        if(kpUnifiedMode==='bulk'){
+          if(typeof kpMobileBluetoothPrintBulkLabels==='function')return await kpMobileBluetoothPrintBulkLabels();
+        }else{
+          if(typeof kpMobileBluetoothPrintSelectedLabels==='function')return await kpMobileBluetoothPrintSelectedLabels();
+        }
+        toast('Bluetooth label module unavailable');return;
+      }
+      if(method==='system'){kpSystemLabelPrint(jobs);return}
+      if(method==='share'){
+        if(typeof kpShareLabelJobs==='function')return await kpShareLabelJobs(jobs);
+        toast('Share / Save module unavailable');return;
+      }
+    }catch(e){console.error(e);if(e?.name!=='AbortError')toast(e?.message||'Label output failed')}
+  };
+
+  function kpLabelFlowInit(){
+    kpBuildMobileDrawer();kpPopulateLabelFlowProducts();
+    const fixed=applyFixedBarcodeDesign();
+    if(!fixed){
+      barcodeEditing=true;
+      document.getElementById('kpLabelSetupFlow').style.display='block';
+      document.getElementById('kpLabelLockedBar').style.display='none';
+      document.getElementById('tabsArea').style.display='none';
+      renderBarcodeEditor();previewLabelsLive();
+    }
+  }
+  window.addEventListener('load',()=>setTimeout(kpLabelFlowInit,500));
+
+  // Keep newly added/edited products available in Single/Bulk dropdowns.
+  const oldRefresh=window.refreshSelects;
+  if(typeof oldRefresh==='function'){
+    window.refreshSelects=function(){const r=oldRefresh.apply(this,arguments);setTimeout(kpPopulateLabelFlowProducts,0);return r}
+  }
+
+  // Swipe/resize safety: close drawer when leaving mobile size.
+  window.addEventListener('resize',()=>{if(innerWidth>800)kpCloseMobileMenu()});
+})();
+</script>
+
 </body>
 </html>
 
