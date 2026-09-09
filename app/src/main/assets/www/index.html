@@ -5040,6 +5040,151 @@ window.addEventListener('load',()=>{if(!kpBtDirectSupported()){const h=document.
 })();
 </script>
 
+
+<script id="kpUniversalNativeOutputFlowV1">
+(function(){
+  async function kpBlobToBase64(blob){
+    const buf=await blob.arrayBuffer();
+    const u=new Uint8Array(buf);
+    let bin='',chunk=0x8000;
+    for(let i=0;i<u.length;i+=chunk){
+      bin+=String.fromCharCode.apply(null,u.subarray(i,Math.min(i+chunk,u.length)));
+    }
+    return btoa(bin);
+  }
+
+  async function kpBuildLabelPdfBlob(jobs){
+    if(!(await ensurePdfLibraries()))throw new Error('PDF engine unavailable');
+    let pdf=null;
+    for(const j of jobs){
+      const r=await kpRenderLabelCanvas(j.p);
+      const count=Math.max(1,Math.min(500,parseInt(j.count||1,10)));
+      for(let k=0;k<count;k++){
+        const orient=r.wmm>=r.hmm?'landscape':'portrait';
+        if(!pdf)pdf=new jspdf.jsPDF({orientation:orient,unit:'mm',format:[r.wmm,r.hmm],compress:true});
+        else pdf.addPage([r.wmm,r.hmm],orient);
+        pdf.addImage(r.canvas.toDataURL('image/png'),'PNG',0,0,r.wmm,r.hmm);
+      }
+    }
+    if(!pdf)throw new Error('No labels');
+    return pdf.output('blob');
+  }
+
+  async function kpNativeSharePdf(blob,filename,title){
+    if(window.KPRO_NATIVE&&typeof window.KPRO_NATIVE.shareFile==='function'){
+      const b64=await kpBlobToBase64(blob);
+      window.KPRO_NATIVE.shareFile(b64,filename,'application/pdf');
+      return true;
+    }
+    const file=new File([blob],filename,{type:'application/pdf'});
+    if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
+      await navigator.share({title:title||filename,files:[file]});
+      return true;
+    }
+    return false;
+  }
+
+  async function kpNativePrintPdf(blob,filename,jobName){
+    if(window.KPRO_NATIVE&&typeof window.KPRO_NATIVE.printPdf==='function'){
+      const b64=await kpBlobToBase64(blob);
+      window.KPRO_NATIVE.printPdf(b64,filename,jobName||filename);
+      return true;
+    }
+    return false;
+  }
+
+  /* BILL: Print Bill -> native Android system PrintManager.
+     Browser window.print is fallback only outside the Android app. */
+  window.printCurrentBill=async function(){
+    const b=currentActionBill();
+    if(!b)return;
+    try{
+      toast('Preparing bill for printer...');
+      const blob=await makeCurrentBillPdfBlob();
+      const filename=`${b.invoiceNo||'Kanakku-Pulla-Bill'}.pdf`;
+      if(await kpNativePrintPdf(blob,filename,`${b.invoiceNo||'Bill'} - Kanakku Pulla`))return;
+      applyBillPrintSettings(true);
+      setTimeout(()=>window.print(),120);
+    }catch(e){
+      console.error(e);
+      toast('Bill print prepare aagala');
+    }
+  };
+
+  /* LABEL: Share / Save -> exactly the same Android native share chooser
+     used by Share PDF / Files in Bills. */
+  window.kpShareLabelJobs=async function(jobs){
+    try{
+      const blob=await kpBuildLabelPdfBlob(jobs);
+      const filename='Kanakku-Pulla-Labels.pdf';
+      if(await kpNativeSharePdf(blob,filename,'Kanakku Pulla Labels'))return;
+      const file=new File([blob],filename,{type:'application/pdf'});
+      try{
+        if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
+          await navigator.share({title:'Kanakku Pulla Labels',files:[file]});
+          return;
+        }
+      }catch(e){if(e&&e.name==='AbortError')return;}
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),2500);
+      toast('Label PDF saved');
+    }catch(e){
+      console.error(e);
+      toast('Label Share / Save failed');
+    }
+  };
+
+  /* LABEL: Wi-Fi / System Printer -> Android native PrintManager.
+     It must never navigate to Google/browser in the Android app. */
+  window.kpSystemPrintLabelJobs=async function(jobs){
+    try{
+      const blob=await kpBuildLabelPdfBlob(jobs);
+      const filename='Kanakku-Pulla-Labels.pdf';
+      if(await kpNativePrintPdf(blob,filename,'Kanakku Pulla Labels'))return;
+      /* browser-only fallback */
+      if(isAnyBarcodeMode()){
+        const out=jobs.flatMap(j=>Array.from({length:j.count},()=>anyBarcodeOneLabel(j.p))).join('');
+        return anyBarcodePrintDocument(out);
+      }
+      if(isJewelleryMode()){
+        const out=jobs.flatMap(j=>Array.from({length:j.count},()=>jewelleryOneLabel(j.p))).join('');
+        return jewelleryPrintDocument(out);
+      }
+      const out=jobs.flatMap(j=>Array.from({length:j.count},()=>barcodeOneLabel(j.p))).join('');
+      return printLabelHtml(out);
+    }catch(e){
+      console.error(e);
+      toast('System print prepare aagala');
+    }
+  };
+
+  /* Override only unified label output routing; Bluetooth logic remains original. */
+  window.kpUnifiedLabelOutput=async function(method){
+    const jobs=kpJobs(kpUnifiedMode);
+    if(!jobs.length){kpCloseUnifiedLabelPrint();return}
+    kpCloseUnifiedLabelPrint();
+    try{
+      if(method==='bluetooth'){
+        if(kpUnifiedMode==='bulk'){
+          if(typeof kpMobileBluetoothPrintBulkLabels==='function')return await kpMobileBluetoothPrintBulkLabels();
+        }else{
+          if(typeof kpMobileBluetoothPrintSelectedLabels==='function')return await kpMobileBluetoothPrintSelectedLabels();
+        }
+        toast('Bluetooth label module unavailable');
+        return;
+      }
+      if(method==='system')return await kpSystemPrintLabelJobs(jobs);
+      if(method==='share')return await kpShareLabelJobs(jobs);
+    }catch(e){
+      console.error(e);
+      if(e?.name!=='AbortError')toast(e?.message||'Label output failed');
+    }
+  };
+})();
+</script>
+
 </body>
 </html>
 
