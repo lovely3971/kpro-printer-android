@@ -1062,13 +1062,13 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 #page-barcodes .kpLabelTabPage.active{display:block}
 #page-barcodes .kpLabelTwoActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
 #page-barcodes .kpLabelTwoActions .btn{justify-content:center}
-#page-barcodes .kpLabelOverlay{position:fixed;inset:0;z-index:22000;background:rgba(0,0,0,.74);display:none;align-items:center;justify-content:center;padding:18px}
-#page-barcodes .kpLabelOverlay.show{display:flex}
-#page-barcodes .kpLabelModal{width:min(430px,94vw);background:var(--surface,#0d130d);border:1px solid var(--border,var(--line));border-radius:17px;padding:20px;box-shadow:0 22px 70px rgba(0,0,0,.5)}
-#page-barcodes .kpLabelModal h3{margin:0 0 10px;color:var(--text)}
-#page-barcodes .kpLabelModal p{margin:0 0 18px;color:var(--text-dim);line-height:1.45}
-#page-barcodes .kpLabelModalButtons{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-#page-barcodes .kpLabelOutputBtn{width:100%;justify-content:flex-start;margin-bottom:9px;padding:13px 14px}
+.kpLabelOverlay{position:fixed;inset:0;z-index:22000;background:rgba(0,0,0,.74);display:none;align-items:center;justify-content:center;padding:18px}
+.kpLabelOverlay.show{display:flex}
+.kpLabelModal{width:min(430px,94vw);background:var(--surface,#0d130d);border:1px solid var(--border,var(--line));border-radius:17px;padding:20px;box-shadow:0 22px 70px rgba(0,0,0,.5)}
+.kpLabelModal h3{margin:0 0 10px;color:var(--text)}
+.kpLabelModal p{margin:0 0 18px;color:var(--text-dim);line-height:1.45}
+.kpLabelModalButtons{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.kpLabelOutputBtn{width:100%;justify-content:flex-start;margin-bottom:9px;padding:13px 14px}
 #page-barcodes .bulk-row-final{display:flex;align-items:center;gap:10px;padding:11px 12px;margin-bottom:8px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2)}
 #page-barcodes .bulk-row-info{min-width:0;flex:1}
 #page-barcodes .bulk-row-name{font-weight:900;color:var(--text);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1087,6 +1087,10 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
   #page-barcodes .kpLabelTwoActions{grid-template-columns:1fr 1fr}
   #page-barcodes .bulk-row-final{padding:10px}
 }
+
+/* Root popup safety: never render label popups inline on any app page */
+.kpLabelOverlay:not(.show){display:none!important}
+.kpLabelOverlay.show{display:flex!important}
 </style>
 
 </head>
@@ -1695,7 +1699,7 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
   </div>
 </div>
 
-<div id="fixedBarcodeDesignModal" class="kpLabelOverlay">
+<div id="fixedBarcodeDesignModal" class="kpLabelOverlay" style="display:none">
   <div class="kpLabelModal">
     <h3>Fixed Design</h3>
     <p>Save the same design for later?</p>
@@ -1703,7 +1707,7 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
   </div>
 </div>
 
-<div id="bulkQtyEditModal" class="kpLabelOverlay">
+<div id="bulkQtyEditModal" class="kpLabelOverlay" style="display:none">
   <div class="kpLabelModal">
     <h3>Edit No. of Labels</h3>
     <div id="bulkQtyEditName" style="font-weight:800;margin-bottom:3px"></div>
@@ -1713,7 +1717,7 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
   </div>
 </div>
 
-<div id="bulkDeleteConfirmModal" class="kpLabelOverlay">
+<div id="bulkDeleteConfirmModal" class="kpLabelOverlay" style="display:none">
   <div class="kpLabelModal">
     <h3>Delete Product?</h3>
     <p>Delete this product from bulk labels?</p>
@@ -1721,7 +1725,7 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
   </div>
 </div>
 
-<div id="kpUnifiedLabelPrintModal" class="kpLabelOverlay">
+<div id="kpUnifiedLabelPrintModal" class="kpLabelOverlay" style="display:none">
   <div class="kpLabelModal">
     <h3>Print Labels</h3>
     <button class="btn btn-dark kpLabelOutputBtn" onclick="kpUnifiedLabelOutput('bluetooth')">📶 Bluetooth Printer</button>
@@ -4695,8 +4699,8 @@ window.addEventListener('load',()=>{if(!kpBtDirectSupported()){const h=document.
     setTimeout(()=>document.getElementById('setupDetailsCard')?.scrollIntoView({behavior:'smooth',block:'start'}),30);
   };
 
-  window.openFixedBarcodeDesignConfirm=function(){document.getElementById('fixedBarcodeDesignModal')?.classList.add('show')};
-  window.closeFixedBarcodeDesignConfirm=function(){document.getElementById('fixedBarcodeDesignModal')?.classList.remove('show')};
+  window.openFixedBarcodeDesignConfirm=function(){const m=document.getElementById('fixedBarcodeDesignModal');if(m){m.style.display='flex';m.classList.add('show')}};
+  window.closeFixedBarcodeDesignConfirm=function(){const m=document.getElementById('fixedBarcodeDesignModal');if(m){m.classList.remove('show');m.style.display='none'}};
 
   window.confirmFixedBarcodeDesign=function(){
     try{localStorage.setItem(KP_LABEL_FLOW_FIXED_KEY,JSON.stringify(kpFixedSnap()));saveBarcodeDesign()}
@@ -4784,15 +4788,15 @@ window.addEventListener('load',()=>{if(!kpBtDirectSupported()){const h=document.
   window.kpOpenBulkQtyEdit=function(id){
     const x=bulkBarcodeItems.find(q=>q.id===id);if(!x)return;const p=DB.products.find(q=>q.id===id);kpBulkEditId=id;
     document.getElementById('bulkQtyEditName').textContent=p?.name||'Product';document.getElementById('bulkQtyEditCode').textContent=p?.code||p?.sku||'';
-    document.getElementById('bulkQtyEditInput').value=Math.max(1,parseInt(x.qty||1,10));document.getElementById('bulkQtyEditModal').classList.add('show');
+    document.getElementById('bulkQtyEditInput').value=Math.max(1,parseInt(x.qty||1,10));const m=document.getElementById('bulkQtyEditModal');if(m){m.style.display='flex';m.classList.add('show')}
   };
-  window.closeBulkQtyEdit=function(){document.getElementById('bulkQtyEditModal')?.classList.remove('show');kpBulkEditId=null};
+  window.closeBulkQtyEdit=function(){const m=document.getElementById('bulkQtyEditModal');if(m){m.classList.remove('show');m.style.display='none'}kpBulkEditId=null};
   window.saveBulkQtyEdit=function(){
     const x=bulkBarcodeItems.find(q=>q.id===kpBulkEditId);if(!x)return closeBulkQtyEdit();
     x.qty=Math.max(1,Math.min(500,parseInt(document.getElementById('bulkQtyEditInput').value||1,10)));renderBulkBarcodeList();closeBulkQtyEdit();toast('Label count updated');
   };
-  window.kpOpenBulkDelete=function(id){kpBulkDeleteId=id;document.getElementById('bulkDeleteConfirmModal')?.classList.add('show')};
-  window.closeBulkDeleteConfirm=function(){document.getElementById('bulkDeleteConfirmModal')?.classList.remove('show');kpBulkDeleteId=null};
+  window.kpOpenBulkDelete=function(id){kpBulkDeleteId=id;const m=document.getElementById('bulkDeleteConfirmModal');if(m){m.style.display='flex';m.classList.add('show')}};
+  window.closeBulkDeleteConfirm=function(){const m=document.getElementById('bulkDeleteConfirmModal');if(m){m.classList.remove('show');m.style.display='none'}kpBulkDeleteId=null};
   window.confirmBulkDelete=function(){
     if(!kpBulkDeleteId)return closeBulkDeleteConfirm();bulkBarcodeItems=bulkBarcodeItems.filter(q=>q.id!==kpBulkDeleteId);renderBulkBarcodeList();closeBulkDeleteConfirm();toast('Product removed');
   };
@@ -4806,8 +4810,8 @@ window.addEventListener('load',()=>{if(!kpBtDirectSupported()){const h=document.
     pickSingleLabelProduct();if(!selectedBarcodeProduct){toast('Select a product first');return []}
     return [{p:selectedBarcodeProduct,count:Math.max(1,Math.min(500,parseInt(document.getElementById('labelQty')?.value||1,10)))}];
   }
-  window.kpOpenUnifiedLabelPrint=function(mode){if(!kpJobs(mode).length)return;kpUnifiedMode=mode;document.getElementById('kpUnifiedLabelPrintModal')?.classList.add('show')};
-  window.kpCloseUnifiedLabelPrint=function(){document.getElementById('kpUnifiedLabelPrintModal')?.classList.remove('show')};
+  window.kpOpenUnifiedLabelPrint=function(mode){if(!kpJobs(mode).length)return;kpUnifiedMode=mode;const m=document.getElementById('kpUnifiedLabelPrintModal');if(m){m.style.display='flex';m.classList.add('show')}};
+  window.kpCloseUnifiedLabelPrint=function(){const m=document.getElementById('kpUnifiedLabelPrintModal');if(m){m.classList.remove('show');m.style.display='none'}};
 
   function kpSystemLabelPrint(jobs){
     if(isAnyBarcodeMode()){
@@ -4840,6 +4844,9 @@ window.addEventListener('load',()=>{if(!kpBtDirectSupported()){const h=document.
   };
 
   function kpLabelFlowInit(){
+    ['fixedBarcodeDesignModal','bulkQtyEditModal','bulkDeleteConfirmModal','kpUnifiedLabelPrintModal'].forEach(id=>{
+      const m=document.getElementById(id);if(m){m.classList.remove('show');m.style.display='none'}
+    });
     kpBuildMobileDrawer();kpPopulateLabelFlowProducts();
     const fixed=applyFixedBarcodeDesign();
     if(!fixed){
