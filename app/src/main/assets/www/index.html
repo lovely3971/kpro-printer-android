@@ -1091,6 +1091,26 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 /* Root popup safety: never render label popups inline on any app page */
 .kpLabelOverlay:not(.show){display:none!important}
 .kpLabelOverlay.show{display:flex!important}
+
+/* Preview-only spacing: every next label row keeps exactly 2 mm vertical gap */
+#labelPreviewArea.barcode-sheet-pro,
+#tabPreviewArea.barcode-sheet-pro{
+  row-gap:2mm!important;
+}
+#labelPreviewArea.jewel-preview-wrap,
+#tabPreviewArea.jewel-preview-wrap,
+#labelPreviewArea.any-barcode-wrap,
+#tabPreviewArea.any-barcode-wrap{
+  row-gap:2mm!important;
+}
+#barcodePreviewScroller .kp-label,
+#tabPreviewScroller .kp-label,
+#barcodePreviewScroller .jewel-body,
+#tabPreviewScroller .jewel-body,
+#barcodePreviewScroller .any-label,
+#tabPreviewScroller .any-label{
+  margin-bottom:0!important;
+}
 </style>
 
 </head>
@@ -1640,9 +1660,9 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 
     <div class="card barcode-preview-card" id="livePreviewCard" style="margin-top:14px">
       <h3 class="block-title" id="barcodePreviewTitle">Live 3-UP Preview</h3>
+      <div class="barcode-preview-status" id="barcodePreviewStatus" style="margin-bottom:8px;font-size:12px;color:var(--text-dim)">Live Design Preview • 3-UP • 35 × 22 mm • 115 mm Roll Width</div>
+      <div class="tip" style="margin-bottom:10px">35 × 22 mm labels • 3 labels per row • 5 mm gap • total width 115 mm</div>
       <div class="barcode-preview-pro" id="barcodePreviewScroller"><div class="barcode-sheet-pro" id="labelPreviewArea"><span style="color:#555;padding:18px">Select a product to preview labels</span></div></div>
-      <div class="barcode-preview-status" id="barcodePreviewStatus" style="margin-top:10px;font-size:12px;color:var(--text-dim)">Live Design Preview • 3-UP • 35 × 22 mm • 115 mm Roll Width</div>
-      <div class="tip">35 × 22 mm labels • 3 labels per row • 5 mm gap • total width 115 mm</div>
     </div>
 
     <div id="designAlignCard" class="card" style="margin-top:14px">
@@ -3245,7 +3265,7 @@ function previewBulkBarcodeLabels(){
   const total=bulkBarcodeItems.reduce((sum,x)=>sum+Math.max(1,parseInt(x.qty||1,10)),0);
   const rows=Math.ceil(total/up);
   area.classList.remove('jewel-preview-wrap','any-barcode-wrap','bulk-preview-mode');area.classList.add('barcode-sheet-pro','normal-mm-sheet');
-  area.style.gridTemplateColumns=`repeat(${up},35mm)`;area.style.columnGap='5mm';area.style.rowGap='0';area.style.minWidth=((35*up)+(5*Math.max(0,up-1))+8)+'mm';
+  area.style.gridTemplateColumns=`repeat(${up},35mm)`;area.style.columnGap='5mm';area.style.rowGap='2mm';area.style.minWidth=((35*up)+(5*Math.max(0,up-1))+8)+'mm';
   if(scroller)scroller.classList.add('bulk-scroll');
   area.innerHTML=bulkBarcodeItems.flatMap(x=>{const p=DB.products.find(q=>q.id===x.id);const q=Math.max(1,parseInt(x.qty||1,10));return p?Array.from({length:q},()=>barcodeOneLabel(p)):[]}).join('');
   renderRealCode128(area);
@@ -4867,6 +4887,156 @@ window.addEventListener('load',()=>{if(!kpBtDirectSupported()){const h=document.
 
   // Swipe/resize safety: close drawer when leaving mobile size.
   window.addEventListener('resize',()=>{if(innerWidth>800)kpCloseMobileMenu()});
+})();
+</script>
+
+
+<script id="kpUniversalBackFlowV1">
+(function(){
+  const KP_MAIN_PAGES = new Set([
+    'dashboard','billing','products','purchases','expenses','suppliers',
+    'customers','barcodes','shipping','reports','teams','settings'
+  ]);
+  const KP_PAGE_STACK = [];
+
+  function kpVisibleOverlay(){
+    const ids=[
+      'fixedBarcodeDesignModal','bulkQtyEditModal','bulkDeleteConfirmModal',
+      'kpUnifiedLabelPrintModal'
+    ];
+    for(const id of ids){
+      const el=document.getElementById(id);
+      if(!el)continue;
+      const shown=el.classList.contains('show') || (el.style.display && el.style.display!=='none');
+      if(shown)return el;
+    }
+    return null;
+  }
+
+  function kpCloseVisibleOverlay(){
+    const o=kpVisibleOverlay();
+    if(!o)return false;
+    o.classList.remove('show');
+    o.style.display='none';
+    return true;
+  }
+
+  function kpCurrentMainPage(){
+    const active=document.querySelector('.page.active[id^="page-"]');
+    return active ? active.id.replace(/^page-/,'') : 'dashboard';
+  }
+
+  function kpSetActivePage(page){
+    if(!page || !KP_MAIN_PAGES.has(page))page='dashboard';
+    document.querySelectorAll('.page[id^="page-"]').forEach(p=>p.classList.toggle('active',p.id===`page-${page}`));
+    document.querySelectorAll('#mainNav .nav-btn').forEach(btn=>{
+      const oc=btn.getAttribute('onclick')||'';
+      btn.classList.toggle('active',oc.includes(`'${page}'`) || oc.includes(`"${page}"`));
+    });
+    try{
+      if(typeof showPage==='function'){
+        // call app-native page renderer if present, while guarding recursion below
+        window.__kpBackRouting=true;
+        showPage(page);
+      }
+    }catch(e){
+      console.warn('Back flow showPage fallback',e);
+    }finally{
+      window.__kpBackRouting=false;
+    }
+    setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),20);
+  }
+
+  // Track main-page transitions from existing showPage().
+  const _kpOriginalShowPage=window.showPage;
+  if(typeof _kpOriginalShowPage==='function'){
+    window.showPage=function(page){
+      const current=kpCurrentMainPage();
+      if(!window.__kpBackRouting && current && page && current!==page && KP_MAIN_PAGES.has(current) && KP_MAIN_PAGES.has(page)){
+        if(KP_PAGE_STACK[KP_PAGE_STACK.length-1]!==current)KP_PAGE_STACK.push(current);
+        if(KP_PAGE_STACK.length>30)KP_PAGE_STACK.shift();
+      }
+      const r=_kpOriginalShowPage.apply(this,arguments);
+      setTimeout(()=>{ if(typeof kpCloseMobileMenu==='function')kpCloseMobileMenu(); },0);
+      return r;
+    };
+  }
+
+  function kpIsBarcodeEditOpen(){
+    const setup=document.getElementById('kpLabelSetupFlow');
+    const locked=document.getElementById('kpLabelLockedBar');
+    return !!(setup && setup.style.display!=='none' && locked && locked.style.display==='none');
+  }
+
+  function kpCloseInnerState(){
+    // Sidebar first
+    if(document.body.classList.contains('kp-mobile-menu-open')){
+      if(typeof kpCloseMobileMenu==='function')kpCloseMobileMenu();
+      return true;
+    }
+
+    // Any popup/modal first
+    if(kpCloseVisibleOverlay())return true;
+
+    // Label Design edit -> return to locked label tabs, when a fixed design already exists.
+    if(kpIsBarcodeEditOpen()){
+      try{
+        const raw=localStorage.getItem('kp_pro_fixed_barcode_design_v15') ||
+                  localStorage.getItem('kp_pro_fixed_barcode_design_v15_standalone');
+        if(raw && typeof enterLockedMode==='function'){
+          enterLockedMode();
+          return true;
+        }
+      }catch(e){}
+    }
+
+    // Hide bottom tab preview first if currently open.
+    const preview=document.getElementById('tabPreviewCard');
+    if(preview && preview.style.display && preview.style.display!=='none'){
+      preview.style.display='none';
+      return true;
+    }
+
+    return false;
+  }
+
+  window.kpUniversalBack=function(){
+    if(kpCloseInnerState())return;
+
+    const current=kpCurrentMainPage();
+    if(current==='dashboard'){
+      // Root dashboard must never fall back into login/activation/browser history.
+      return;
+    }
+
+    let prev=null;
+    while(KP_PAGE_STACK.length){
+      const candidate=KP_PAGE_STACK.pop();
+      if(candidate && candidate!==current && KP_MAIN_PAGES.has(candidate)){
+        prev=candidate; break;
+      }
+    }
+    kpSetActivePage(prev||'dashboard');
+  };
+
+  // Existing floating back button -> universal flow.
+  window.kpBillingBack=function(){kpUniversalBack()};
+
+  // Android hardware / gesture back dispatched from MainActivity if it calls browser history:
+  window.addEventListener('popstate',function(ev){
+    ev.preventDefault();
+    kpUniversalBack();
+  });
+
+  // Keep a stable root state so browser history never escapes to login/activation.
+  try{
+    if(!history.state || !history.state.kpRoot){
+      history.replaceState({kpRoot:true},document.title,location.href);
+    }
+  }catch(e){}
+
+  // Make dashboard the deterministic base of the page stack.
+  window.addEventListener('load',()=>{KP_PAGE_STACK.length=0;});
 })();
 </script>
 
