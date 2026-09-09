@@ -5223,6 +5223,66 @@ window.addEventListener('load',()=>{if(!kpBtDirectSupported()){const h=document.
 })();
 </script>
 
+
+<script id="kpBarcodeBluetoothRouteScopeFixV1">
+(function(){
+  // Final isolated routing fix for the unified Label Print popup.
+  // The previous late override referenced private IIFE variables (kpJobs/kpUnifiedMode),
+  // so Bluetooth could stop before reaching the already-working native TSPL bridge.
+  function kpCurrentUnifiedModeSafe(){
+    const bulk=document.getElementById('tabBulk');
+    return bulk&&bulk.classList.contains('active')?'bulk':'single';
+  }
+  function kpUnifiedJobsSafe(mode){
+    if(mode==='bulk'){
+      if(!Array.isArray(window.bulkBarcodeItems)&&typeof bulkBarcodeItems==='undefined')return [];
+      const items=(typeof bulkBarcodeItems!=='undefined'?bulkBarcodeItems:window.bulkBarcodeItems)||[];
+      if(!items.length){if(typeof toast==='function')toast('Add products to bulk list');return []}
+      return items.map(x=>({
+        p:DB.products.find(q=>q.id===x.id),
+        count:Math.max(1,Math.min(500,parseInt(x.qty||1,10)))
+      })).filter(x=>x.p);
+    }
+    try{if(typeof pickSingleLabelProduct==='function')pickSingleLabelProduct()}catch(e){}
+    const p=(typeof selectedBarcodeProduct!=='undefined'?selectedBarcodeProduct:window.selectedBarcodeProduct)||null;
+    if(!p){if(typeof toast==='function')toast('Select a product first');return []}
+    return [{p,count:Math.max(1,Math.min(500,parseInt(document.getElementById('labelQty')?.value||1,10)))}];
+  }
+
+  window.kpUnifiedLabelOutput=async function(method){
+    const mode=kpCurrentUnifiedModeSafe();
+    const jobs=kpUnifiedJobsSafe(mode);
+    if(!jobs.length){if(typeof kpCloseUnifiedLabelPrint==='function')kpCloseUnifiedLabelPrint();return}
+    if(typeof kpCloseUnifiedLabelPrint==='function')kpCloseUnifiedLabelPrint();
+    try{
+      if(method==='bluetooth'){
+        // Preserve the proven native Android Bluetooth/TSPL functions exactly.
+        if(mode==='bulk'){
+          if(typeof kpMobileBluetoothPrintBulkLabels==='function')return await kpMobileBluetoothPrintBulkLabels();
+        }else{
+          if(typeof kpMobileBluetoothPrintSelectedLabels==='function')return await kpMobileBluetoothPrintSelectedLabels();
+        }
+        if(typeof toast==='function')toast('Bluetooth label module unavailable');
+        return;
+      }
+      if(method==='system'){
+        if(typeof kpSystemPrintLabelJobs==='function')return await kpSystemPrintLabelJobs(jobs);
+        if(typeof kpSystemLabelPrint==='function')return kpSystemLabelPrint(jobs);
+        if(typeof toast==='function')toast('System printer module unavailable');
+        return;
+      }
+      if(method==='share'){
+        if(typeof kpShareLabelJobs==='function')return await kpShareLabelJobs(jobs);
+        if(typeof toast==='function')toast('Share / Save module unavailable');
+      }
+    }catch(e){
+      console.error(e);
+      if(e?.name!=='AbortError'&&typeof toast==='function')toast(e?.message||'Label output failed');
+    }
+  };
+})();
+</script>
+
 </body>
 </html>
 
