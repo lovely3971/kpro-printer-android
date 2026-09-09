@@ -23,6 +23,14 @@ import android.widget.Toast;
 import androidx.core.content.FileProvider;
 import java.io.File;
 import java.io.FileOutputStream;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintDocumentInfo;
+import android.print.PrintManager;
+import android.print.PageRange;
+import android.os.CancellationSignal;
+import android.os.ParcelFileDescriptor;
+import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.util.*;
 
@@ -74,14 +82,20 @@ public class MainActivity extends Activity {
     web.loadUrl("file:///android_asset/www/index.html");
   }
   @Override protected void onActivityResult(int r,int c,Intent data){super.onActivityResult(r,c,data);if(r==REQ_FILE&&fileCallback!=null){fileCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(c,data));fileCallback=null;}}
+  
   @Override public void onBackPressed(){
-    if(web==null){super.onBackPressed();return;}
-    web.evaluateJavascript("(function(){try{var a=document.querySelector('.screen.active');if(a){if(a.id==='screenBillingApp'&&typeof kpBillingBack==='function'){kpBillingBack();return 'handled';}if((a.id==='screenLogin'||a.id==='screenCreateShop'||a.id==='screenJoinShop')&&typeof showScreen==='function'){showScreen('shop');return 'handled';}if(a.id==='screenShop'&&typeof kpBackFromShop==='function'){kpBackFromShop();return 'handled';}}}catch(e){}return 'no';})()", v->{
-      if(v!=null&&v.contains("handled"))return;
-      if(web.canGoBack())web.goBack(); else super.onBackPressed();
-    });
+    try{
+      if(web!=null){
+        web.evaluateJavascript("try{if(window.kpUniversalBack){window.kpUniversalBack();'KP_HANDLED'}else{'KP_NO'}}catch(e){'KP_NO'}", value -> {
+          if(value==null || value.contains("KP_NO")){
+            MainActivity.super.onBackPressed();
+          }
+        });
+        return;
+      }
+    }catch(Exception e){}
+    super.onBackPressed();
   }
-
 
   private void registerUpdateReceiver(){
     IntentFilter f=new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
@@ -249,6 +263,14 @@ public class MainActivity extends Activity {
         return idNew;
       }catch(Exception e){return "";}
     }
+
+    @JavascriptInterface public String getAppVersionName(){
+      try{
+        android.content.pm.PackageInfo pi=getPackageManager().getPackageInfo(getPackageName(),0);
+        return pi.versionName==null?"":pi.versionName;
+      }catch(Exception e){return "";}
+    }
+
     @JavascriptInterface public boolean available(){return bt!=null;}
     @JavascriptInterface public String printerName(){try{return socket!=null&&socket.isConnected()?socket.getRemoteDevice().getName():"Android Bluetooth Printer";}catch(Exception e){return "Android Bluetooth Printer";}}
     @JavascriptInterface public void connect(){runOnUiThread(()->ensurePermissionThenChoose());}
@@ -280,6 +302,58 @@ public class MainActivity extends Activity {
           share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
           startActivity(Intent.createChooser(share,"Share"));
         }catch(Exception e){toast("Share failed: "+e.getMessage());}
+      });
+    }
+
+    @JavascriptInterface public void printPdf(String base64,String filename,String jobName){
+      runOnUiThread(()->{
+        try{
+          byte[] bytes=Base64.decode(base64,Base64.DEFAULT);
+          File dir=new File(getCacheDir(),"print");
+          if(!dir.exists())dir.mkdirs();
+          String safeName=(filename==null||filename.isEmpty())?"kanakku-pulla-print.pdf":filename;
+          File pdfFile=new File(dir,safeName);
+          FileOutputStream fos=new FileOutputStream(pdfFile);
+          fos.write(bytes);fos.close();
+
+          PrintManager pm=(PrintManager)getSystemService(Context.PRINT_SERVICE);
+          if(pm==null){toast("System print service unavailable");return;}
+
+          final File sourceFile=pdfFile;
+          PrintDocumentAdapter adapter=new PrintDocumentAdapter(){
+            @Override public void onLayout(PrintAttributes oldAttributes,PrintAttributes newAttributes,
+                                           CancellationSignal cancellationSignal,
+                                           LayoutResultCallback callback,Bundle extras){
+              if(cancellationSignal.isCanceled()){callback.onLayoutCancelled();return;}
+              PrintDocumentInfo info=new PrintDocumentInfo.Builder(safeName)
+                .setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
+                .setPageCount(PrintDocumentInfo.PAGE_COUNT_UNKNOWN)
+                .build();
+              callback.onLayoutFinished(info,true);
+            }
+
+            @Override public void onWrite(PageRange[] pages,ParcelFileDescriptor destination,
+                                          CancellationSignal cancellationSignal,
+                                          WriteResultCallback callback){
+              try(FileInputStream in=new FileInputStream(sourceFile);
+                  FileOutputStream out=new FileOutputStream(destination.getFileDescriptor())){
+                byte[] buf=new byte[8192];
+                int len;
+                while((len=in.read(buf))>0){
+                  if(cancellationSignal.isCanceled()){callback.onWriteCancelled();return;}
+                  out.write(buf,0,len);
+                }
+                out.flush();
+                callback.onWriteFinished(new PageRange[]{PageRange.ALL_PAGES});
+              }catch(Exception e){
+                callback.onWriteFailed(e.getMessage());
+              }
+            }
+          };
+
+          String name=(jobName==null||jobName.isEmpty())?"Kanakku Pulla Print":jobName;
+          pm.print(name,adapter,new PrintAttributes.Builder().build());
+        }catch(Exception e){toast("Print failed: "+e.getMessage());}
       });
     }
   }
