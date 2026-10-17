@@ -1,6 +1,6 @@
 {
-  "versionCode": 21,
-  "versionName": "2.1.9",
+  "versionCode": 22,
+  "versionName": "2.2.0",
   "apkUrl": "https://github.com/lovely3971/kpro-printer-android/releases/download/latest/app-debug.apk",
-  "notes": "V21: fixes Barcode Labels Bluetooth Printer routing while preserving existing billing, barcode alignment, TSPL, share/save, system print, activation, and back-flow behavior."
+  "notes": "V22: owner + staff phones no longer erase each other's bills; stock from both phones adds up correctly; phone storage full no longer loses a bill."
 }
