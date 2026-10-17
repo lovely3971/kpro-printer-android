@@ -2014,7 +2014,7 @@ function loadDB(){
     return Object.assign(defaultDB(), parsed);
   }catch(e){ return defaultDB(); }
 }
-function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(DB)); }
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DB)); try{if(window.parent!==window)window.parent.__kpPendingDB=null}catch(_){} }catch(e){ try{if(window.parent!==window)window.parent.__kpPendingDB=JSON.parse(JSON.stringify(DB))}catch(_){} if(!window.__kpFullWarned){window.__kpFullWarned=1;toast('Phone storage full - data cloud-la save aagum. Pazhaya photos konjam remove pannunga.')} } }
 function uid(){ return 'id'+Date.now()+Math.floor(Math.random()*10000); }
 function fmt(n){ n=Number(n||0); return '₹'+n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtN(n){ n=Number(n||0); return n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -3871,6 +3871,13 @@ function renderAll(){
   document.getElementById('purDate').value=todayISO(); document.getElementById('purDelivery').value=todayISO();
   kpApplyStaffAccess();
 }
+// cloud sync: another device's changes come into this screen (the bill being typed stays)
+window.kpApplyCloudDB=function(d){try{DB=Object.assign(defaultDB(),d)}catch(e){return}
+  try{refreshSelects()}catch(e){} try{renderDashboard()}catch(e){} try{renderProductList()}catch(e){} try{renderCategories()}catch(e){}
+  try{renderUnits()}catch(e){} try{renderLowStock()}catch(e){} try{renderBills()}catch(e){} try{renderExpenses()}catch(e){}
+  try{renderSuppliers()}catch(e){} try{renderCustomers()}catch(e){} try{renderStaff()}catch(e){} try{renderReports()}catch(e){}
+  try{kpApplyStaffAccess()}catch(e){}
+};
 renderAll();
 </script>
 <div class="bill-action-overlay" id="billActionOverlay" onclick="if(event.target===this)closeBillActions()">
@@ -5905,6 +5912,183 @@ $('jsStaffMobile').addEventListener('input',e=>{
 
 async function jsJoinShop(){const msg=$('jsMessage');msg.className='jsMessage';msg.textContent='';const inviteCode=$('jsInviteCode').value.trim().toUpperCase(),staffName=$('jsStaffName').value.trim(),mobile=$('jsStaffMobile').value.trim();if(!inviteCode){msg.className='jsMessage err';msg.textContent='Please enter the Shop Invite Code.';$('jsInviteCode').focus();return}if(!staffName){msg.className='jsMessage err';msg.textContent='Please enter Staff Name.';$('jsStaffName').focus();return}if(!/^\d{10}$/.test(mobile)){msg.className='jsMessage err';msg.textContent='Please enter a valid 10 digit Mobile Number.';$('jsStaffMobile').focus();return}msg.className='jsMessage ok';msg.textContent='Joining shop...';localStorage.setItem('kp_pending_join',JSON.stringify({inviteCode,staffName,mobile}));try{await kpSb.auth.signOut()}catch(e){}const rand=((window.crypto&&crypto.randomUUID)?crypto.randomUUID().replace(/-/g,''):(Math.random().toString(36).slice(2)+Date.now().toString(36))).slice(0,20);const hiddenEmail='kpstaff.'+Date.now()+'.'+rand+'@example.com';const hiddenPassword='Kp!'+rand+Math.random().toString(36).slice(2,10)+'9a';const {data,error}=await kpSb.auth.signUp({email:hiddenEmail,password:hiddenPassword,options:{data:{full_name:staffName,kp_staff:true,kp_mobile:mobile}}});if(error){localStorage.removeItem('kp_pending_join');msg.className='jsMessage err';msg.textContent=error.message||'Could not join shop.';return}if(!data||!data.session){localStorage.removeItem('kp_pending_join');msg.className='jsMessage err';msg.textContent='Direct Join needs Email Confirmation OFF in Supabase.';return}try{const my=await kpCompletePendingJoin();kpSetAccessFromShop(my);localStorage.setItem('kp_staff_auth_v1',JSON.stringify({email:hiddenEmail,password:hiddenPassword,createdAt:new Date().toISOString()}));kpSetDeviceBinding({role:'staff',staffName:staffName,mobile:mobile,boundAt:new Date().toISOString()});kpApplyBoundLoginUI();msg.className='jsMessage ok';msg.textContent='Shop Joined Successfully';setTimeout(openFullBillingApp,300)}catch(e){try{await kpSb.auth.signOut()}catch(_){}localStorage.removeItem('kp_pending_join');msg.className='jsMessage err';msg.textContent=e.message||'Could not join shop.'}}
 kpSb.auth.onAuthStateChange((event,session)=>{if(session&&session.user&&!kpGetDeviceBinding()){const md=session.user.user_metadata||{};if(md.kp_staff)kpSetDeviceBinding({role:'staff',staffName:md.full_name||'',mobile:String(md.kp_mobile||''),boundAt:new Date().toISOString()});else kpSetDeviceBinding({role:'owner',email:String(session.user.email||'').toLowerCase(),boundAt:new Date().toISOString()});kpApplyBoundLoginUI()}if(event==='PASSWORD_RECOVERY'){setTimeout(kpShowResetPassword,100);return}if((event==='SIGNED_IN'||event==='INITIAL_SESSION')&&session){setTimeout(async()=>{try{if(localStorage.getItem('kp_pending_join')){const my=await kpCompletePendingJoin();kpSetAccessFromShop(my);openFullBillingApp()}else if(localStorage.getItem('kp_pending_create_shop')){const my=await kpAfterAuthenticated();if(my)localStorage.setItem('kp_pro_owner_logged_in','true')}}catch(e){console.error(e)}},150)}});
+
+
+/* ===== Kanakku Pulla PRO: safe multi-device cloud sync =====
+   Before: every device uploaded its whole copy every 2.5 s, so a bill saved on one
+   phone was wiped by the other phone's next upload. Now:
+   - changes are merged (bills, products, customers... by id; stock by +/- difference)
+   - the cloud copy is replaced only if nobody else saved in between (sync_shop_data)
+   - other devices' changes come into this device within a few seconds
+   - changes made offline are kept after the app opens again */
+const KP_DB_KEY='kanakkuProDB_v1';
+const KP_SYNCED_KEY='kp_cloud_synced_hash';
+const KP_SEQ_KEYS={billSeq:'bills',purchaseSeq:'purchases'};
+const KP_DELTA_FIELDS={stock:1};
+let kpSyncBase=null, kpSyncAt=null, kpSyncBusy=false, kpSyncAgain=false, kpSyncChecks=0;
+
+function kpHash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)+':'+s.length}
+const kpJ=(v)=>JSON.stringify(v===undefined?null:v);
+const kpKeyOf=(x)=>x&&typeof x==='object'?(x.id!=null?'id:'+x.id:'j:'+kpJ(x)):'v:'+kpJ(x);
+
+function kpMergeObj(b,l,r){
+  if(!l||!r||typeof l!=='object'||typeof r!=='object'||Array.isArray(l)||Array.isArray(r)){
+    if(kpJ(l)===kpJ(r))return l;
+    if(b!==undefined&&kpJ(l)===kpJ(b))return r;
+    return l;
+  }
+  const out={};
+  for(const k of new Set([...Object.keys(r),...Object.keys(l)])){
+    const B=b&&typeof b==='object'?b[k]:undefined, L=l[k], R=r[k];
+    if(!(k in l)){ if(b&&(k in b))continue; out[k]=R; continue; }
+    if(!(k in r)){ if(b&&(k in b)&&kpJ(L)===kpJ(B))continue; out[k]=L; continue; }
+    // stock: both devices' sales count (10 -2 here, -2 there = 6)
+    if(KP_DELTA_FIELDS[k]&&b&&(k in b)&&L!==''&&R!==''&&B!==''&&isFinite(L)&&isFinite(R)&&isFinite(B)){out[k]=Number(B)+(Number(L)-Number(B))+(Number(R)-Number(B));continue}
+    if(kpJ(L)===kpJ(R)){out[k]=L;continue}
+    if(b&&kpJ(L)===kpJ(B)){out[k]=R;continue}
+    if(b&&kpJ(R)===kpJ(B)){out[k]=L;continue}
+    out[k]=L;
+  }
+  return out;
+}
+function kpMergeArr(b,l,r){
+  l=Array.isArray(l)?l:[]; r=Array.isArray(r)?r:[];
+  const B=new Map((Array.isArray(b)?b:[]).map(x=>[kpKeyOf(x),x]));
+  const R=new Map(r.map(x=>[kpKeyOf(x),x]));
+  const L=new Map(l.map(x=>[kpKeyOf(x),x]));
+  const hasBase=Array.isArray(b), out=[];
+  for(const x of l){
+    const k=kpKeyOf(x);
+    if(R.has(k)){out.push(kpMergeObj(B.get(k),x,R.get(k)));continue}
+    if(hasBase&&B.has(k)&&kpJ(B.get(k))===kpJ(x))continue; // deleted on the other device
+    out.push(x);
+  }
+  for(const x of r){
+    const k=kpKeyOf(x);
+    if(L.has(k))continue;
+    if(hasBase&&B.has(k))continue; // deleted on this device
+    out.push(x);
+  }
+  return out;
+}
+function kpMaxSeq(list,field){let m=0;for(const x of (list||[])){const n=parseInt(String((x&&x[field])||'').replace(/\D+/g,''),10);if(n>m)m=n}return m}
+function kpMergeDB(base,local,remote){
+  local=local||{}; remote=remote||{};
+  const out={};
+  for(const k of new Set([...Object.keys(remote),...Object.keys(local)])){
+    const L=local[k], R=remote[k], B=base?base[k]:undefined;
+    if(!(k in local)){out[k]=R;continue}
+    if(!(k in remote)){out[k]=L;continue}
+    if(Array.isArray(L)||Array.isArray(R)){out[k]=kpMergeArr(base?(Array.isArray(B)?B:[]):undefined,L,R);continue}
+    if(KP_SEQ_KEYS[k]){out[k]=Math.max(Number(L)||1,Number(R)||1);continue}
+    out[k]=kpMergeObj(B,L,R);
+  }
+  // next numbers always after the highest number already used
+  if(Array.isArray(out.bills))out.billSeq=Math.max(Number(out.billSeq)||1,kpMaxSeq(out.bills,'invoiceNo')+1);
+  if(Array.isArray(out.purchases))out.purchaseSeq=Math.max(Number(out.purchaseSeq)||1,kpMaxSeq(out.purchases,'purchaseNo')+1);
+  return out;
+}
+
+function kpReadLocalDB(){
+  if(window.__kpPendingDB)return JSON.parse(JSON.stringify(window.__kpPendingDB));
+  try{return JSON.parse(localStorage.getItem(KP_DB_KEY)||'{}')||{}}catch(e){return null}
+}
+// local copy + the open billing screen, in the same moment (nothing can save in between)
+function kpWriteLocalDB(obj){
+  const raw=JSON.stringify(obj);
+  window.__kpPendingDB=null;
+  try{localStorage.setItem(KP_DB_KEY,raw)}catch(e){window.__kpPendingDB=obj}
+  try{const f=document.getElementById('billingAppFrame');if(f&&f.contentWindow&&f.contentWindow.kpApplyCloudDB)f.contentWindow.kpApplyCloudDB(obj)}catch(e){}
+  return raw;
+}
+function kpMarkSynced(raw,at){
+  kpSyncBase=JSON.parse(raw); kpSyncAt=at||kpSyncAt; kpLastCloudPayload=raw;
+  try{localStorage.setItem(KP_SYNCED_KEY,kpHash(raw))}catch(e){}
+}
+function kpLocalDirty(raw){try{return !!raw&&raw!=='{}'&&localStorage.getItem(KP_SYNCED_KEY)!==kpHash(raw)}catch(e){return false}}
+
+// cloud save: only if nobody saved since kpSyncAt; else merge and try again
+async function kpPush(shopId,data){
+  for(let i=0;i<4;i++){
+    const {data:res,error}=await kpSb.rpc('sync_shop_data',{p_shop_id:shopId,p_data:data,p_base_updated_at:kpSyncAt});
+    if(error)throw error;
+    if(res&&res.ok){return {data:res.data||data,at:res.updated_at||null}}
+    if(res&&res.conflict){
+      const merged=kpMergeDB(kpSyncBase,data,res.data||{});
+      kpSyncBase=res.data||{}; kpSyncAt=res.updated_at||null; data=merged;
+      continue;
+    }
+    throw new Error('sync_shop_data: unexpected answer');
+  }
+  throw new Error('Cloud busy, will try again');
+}
+
+// put the cloud result on this device; a change made here meanwhile is kept (merged)
+function kpLand(sent,result,at){
+  const cur=kpReadLocalDB()||sent, curRaw=JSON.stringify(cur), resRaw=JSON.stringify(result);
+  const same=curRaw===JSON.stringify(sent);
+  if(same){ if(resRaw!==curRaw)kpWriteLocalDB(result) }
+  else kpWriteLocalDB(kpMergeDB(sent,cur,result)); // pushed on the next round
+  kpSyncBase=JSON.parse(resRaw); kpSyncAt=at||kpSyncAt; kpLastCloudPayload=resRaw;
+  if(same){try{localStorage.setItem(KP_SYNCED_KEY,kpHash(resRaw))}catch(e){}}
+}
+kpCloudSave=async function(){
+  if(kpSyncBusy){kpSyncAgain=true;return}
+  const shopId=kpGetCloudShopId();if(!shopId)return;
+  const {data:{session}}=await kpSb.auth.getSession();if(!session)return;
+  kpSyncBusy=true;
+  try{
+    const local=kpReadLocalDB();if(!local)return;
+    const localRaw=JSON.stringify(local);
+    const changed=localRaw!==kpLastCloudPayload;
+    // someone else saved? bring their changes in (checked every ~10 s, and before every save)
+    if(changed||(++kpSyncChecks%4===0)){
+      const {data:row}=await kpSb.from('shop_data').select('updated_at').eq('shop_id',shopId).maybeSingle();
+      if(row&&row.updated_at&&row.updated_at!==kpSyncAt){
+        const {data:full}=await kpSb.from('shop_data').select('data,updated_at').eq('shop_id',shopId).maybeSingle();
+        if(full&&full.data){
+          const merged=kpMergeDB(kpSyncBase,local,full.data);
+          kpSyncBase=full.data;kpSyncAt=full.updated_at;
+          if(JSON.stringify(merged)===JSON.stringify(full.data)){kpLand(local,full.data,full.updated_at);return}
+          const res=await kpPush(shopId,merged);
+          kpLand(local,res.data,res.at);
+          return;
+        }
+      }
+    }
+    if(!changed)return;
+    const res=await kpPush(shopId,local);
+    kpLand(local,res.data,res.at);
+  }catch(e){console.error('Cloud sync failed',e)}
+  finally{kpSyncBusy=false;if(kpSyncAgain){kpSyncAgain=false;setTimeout(kpCloudSave,0)}}
+};
+kpStartCloudSync=function(){if(kpCloudTimer)clearInterval(kpCloudTimer);kpCloudTimer=setInterval(kpCloudSave,2500)};
+
+// app opens: keep changes this device made while offline / before the last save
+(function(){
+  const orig=kpLoadCloudShop;
+  kpLoadCloudShop=async function(shopId){
+    let local=null;
+    try{const raw=localStorage.getItem(KP_DB_KEY);if(raw&&kpLocalDirty(raw))local=JSON.parse(raw)}catch(e){}
+    await orig(shopId);
+    try{
+      const {data:full}=await kpSb.from('shop_data').select('data,updated_at').eq('shop_id',shopId).maybeSingle();
+      if(!full)return;
+      kpSyncBase=full.data||{};kpSyncAt=full.updated_at||null;
+      const cloudRaw=JSON.stringify(kpSyncBase);
+      if(local){
+        const merged=kpMergeDB(null,local,kpSyncBase);
+        kpWriteLocalDB(merged);
+        kpLastCloudPayload=cloudRaw;
+        kpSyncShopProfileToBilling();
+        setTimeout(kpCloudSave,0);
+      }else{
+        kpMarkSynced(cloudRaw,full.updated_at);
+        kpSyncShopProfileToBilling();
+      }
+    }catch(e){console.error('Cloud load check failed',e)}
+  };
+})();
 
 </script>
 <script>
