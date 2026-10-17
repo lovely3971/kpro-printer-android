@@ -1,6 +1,6 @@
 {
-  "versionCode": 23,
-  "versionName": "2.3.0",
+  "versionCode": 24,
+  "versionName": "2.4.0",
   "apkUrl": "https://github.com/lovely3971/kpro-printer-android/releases/download/latest/app-debug.apk",
-  "notes": "V23: one code for Phone, PC and Android app; removed devices go back to Activation; page change error fixed; old saved label design kept."
+  "notes": "V24: Return button on bills (stock back, sales minus on the return day, Undo); Dashboard month wise / day wise Sales, Cost, Expense, Profit report."
 }
