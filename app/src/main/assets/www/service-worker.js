@@ -1,4 +1,4 @@
-// Kanakku Pulla PRO (one code for Mobile, System and the Android app)
+// Kanakku Pulla PRO (one code for Mobile, System and the Android app; Phone + PC sites deploy from this folder)
 const CACHE='kanakku-pulla-pro-v16-one-code';
 const CORE=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./activate-design.webp','./shop-design.webp','./activation-system.webp','./selector-system.webp','./refresh-buffer-logo.jpeg'];
 self.addEventListener('install',event=>{
