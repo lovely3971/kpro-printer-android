@@ -694,6 +694,27 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-d
 .upload-box{border:1.5px dashed var(--line);border-radius:10px;padding:30px;text-align:center;color:var(--accent);font-size:13px;cursor:pointer;background:#070c07;}
 .upload-box small{display:block;color:var(--text-faint);margin-top:4px;}
 .table-wrap{overflow-x:auto;}
+.kpRepBar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px}
+.kpRepBar input[type=month]{font-size:16px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+table.kpRepTable{min-width:0;font-size:12.5px}
+.kpRepTable th,.kpRepTable td{padding:8px 6px;text-align:right}
+.kpRepTable th:first-child,.kpRepTable td:first-child{text-align:left}
+.kpRepTable tbody tr.kpRepRow{cursor:pointer}
+.kpRepTable td.kpPos{color:var(--accent);font-weight:700}
+.kpRepTable td.kpNeg{color:var(--red);font-weight:700}
+.kpRepTable tr.kpRepTotal td{font-weight:800;border-top:1px solid var(--line);border-bottom:0}
+.kpRepHint{font-size:11.5px;color:var(--text-faint);margin-top:8px}
+.kpRetItem{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#081008}
+.kpRetItem .nm{font-weight:800}.kpRetItem .sub{font-size:12px;color:var(--text-dim);margin-top:3px}
+.kpRetStep{display:flex;align-items:center;gap:8px;margin-top:10px}
+.kpRetStep button{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#0d130d;color:var(--text);font-size:20px;font-weight:800;cursor:pointer}
+.kpRetStep input{width:64px;height:40px;text-align:center;font-size:16px;background:#070c07;border:1px solid var(--line);border-radius:9px;color:var(--text)}
+.kpRetStep .amt{margin-left:auto;font-weight:800;color:var(--accent)}
+.kpRetItem.done{opacity:.55}
+.kpRetPast{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin-top:12px;font-size:12.5px}
+.kpRetPast .row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line-soft)}
+.kpRetPast .row:last-child{border-bottom:0}
+.ret-bill-btn{color:#ff9f6b!important}
 table{width:100%;border-collapse:collapse;font-size:13px;min-width:700px;}
 th{text-align:left;color:var(--accent);font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;padding:10px 12px;border-bottom:1px solid var(--line-soft);white-space:nowrap;}
 td{padding:9px 10px;border-bottom:1px solid #0f180f;white-space:nowrap;color:var(--text);}
@@ -1226,6 +1247,15 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 <div class="stat"><div><div class="stat-label">Stock Units</div><div class="stat-value" id="dStockUnits">0</div></div><div class="stat-icon">▥</div></div>
 <div class="stat"><div><div class="stat-label">Today Profit</div><div class="stat-value" id="dProfitToday">Rs.0.00</div></div><div class="stat-icon"><svg class="ic" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg></div></div>
 <div class="stat"><div><div class="stat-label">Today Expenses</div><div class="stat-value" id="dExpToday">Rs.0.00</div></div><div class="stat-icon"><svg class="ic" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M5 12h14"></path></svg></div></div>
+</div>
+<div class="card" id="kpSalesReport" style="margin-bottom:14px;">
+<div class="section-title"><div class="section-title-left"><h2 style="font-size:16px;">Sales Report</h2></div></div>
+<div class="kpRepBar">
+<div class="tabs-inline" style="margin:0"><div class="tab-pill active" id="kpRepTabMonth" onclick="kpRepShow('month')">Month wise</div><div class="tab-pill" id="kpRepTabDay" onclick="kpRepShow('day')">Day wise</div></div>
+<input type="month" id="kpRepMonth" onchange="kpRepShow('day')" style="display:none">
+</div>
+<div class="table-wrap"><table class="kpRepTable"><thead><tr><th id="kpRepHead">Month</th><th>Sales</th><th>Cost</th><th>Expense</th><th>Profit</th></tr></thead><tbody id="kpRepBody"></tbody></table></div>
+<div class="kpRepHint" id="kpRepHint">Tap a month to see its days. Amounts in Rs. Returns are minus on the return day.</div>
 </div>
 <div class="card">
 <div class="section-title"><div class="section-title-left"><h2 style="font-size:16px;">Shop Profile</h2></div>
@@ -1998,6 +2028,22 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 </div>
 </div>
 </div>
+<div class="bill-edit-overlay" id="billReturnOverlay">
+<div class="bill-edit-modal" style="width:min(560px,96vw)">
+<div class="bill-edit-head"><div><div class="stat-label">RETURN</div><h3 id="retTitle">Bill</h3></div><button class="bill-edit-close" onclick="closeBillReturn()" type="button">×</button></div>
+<div class="bill-edit-body">
+<div class="bill-edit-note">Type how many came back. Stock goes back and the amount is minus from sales on the return date.</div>
+<div id="retItems"></div>
+<div class="bill-edit-details-grid" style="margin-top:4px">
+<div><label>Return Date</label><input id="retDate" type="date" style="font-size:16px"/></div>
+<div><label>Reason (optional)</label><input id="retReason" placeholder="Size / damage / changed mind" style="font-size:16px"/></div>
+</div>
+<div class="bill-edit-summary"><div class="bill-edit-summary-row grand"><span>Return Amount</span><b id="retTotal">₹0.00</b></div></div>
+<div class="bill-edit-actions"><button class="btn btn-dark" onclick="closeBillReturn()" type="button">Cancel</button><button class="btn btn-primary" onclick="saveBillReturn()" type="button">Save Return</button></div>
+<div id="retPast"></div>
+</div>
+</div>
+</div>
 <div class="bill-edit-overlay" id="billEditOverlay">
 <div class="bill-edit-modal">
 <div class="bill-edit-head"><div><div class="stat-label">EDIT BILL</div><h3 id="billEditTitle">Bill</h3></div><button class="bill-edit-close" onclick="closeBillEditor()" type="button">×</button></div>
@@ -2056,7 +2102,7 @@ function defaultDB(){
   return {
     shop:{name:'',phone:'',address:'',gst:'',lowStock:3,logo:''},
     products:[], categories:[], units:['PCS','PACK','KG','LTR','BOX','MTR'],
-    suppliers:[], customers:[], bills:[], purchases:[], expenses:[], staff:[],
+    suppliers:[], customers:[], bills:[], purchases:[], expenses:[], staff:[], returns:[],
     billSeq:1, purchaseSeq:1, lastBackup:null
   };
 }
@@ -2230,6 +2276,97 @@ function refreshSelects(){
 }
 
 /* ============ DASHBOARD ============ */
+/* ============ RETURNS ============ */
+function kpLiveReturns(){const ok=new Set(DB.bills.filter(b=>b.status!=='Cancelled').map(b=>b.id));return (DB.returns||[]).filter(r=>ok.has(r.billId))}
+function kpReturnedQty(billId){const m={};(DB.returns||[]).filter(r=>r.billId===billId).forEach(r=>(r.items||[]).forEach(i=>{m[i.productId]=(m[i.productId]||0)+Number(i.qty||0)}));return m}
+function kpBillNetQtyMap(b){const m=kpStockQtyMap(b.items),r=kpReturnedQty(b.id);Object.keys(r).forEach(k=>{if(m[k]!=null)m[k]=Math.max(0,m[k]-r[k])});return m}
+function kpBillPriceFactor(b){const gross=(b.items||[]).reduce((s,i)=>s+Number(i.qty||0)*Number(i.rate||0)*(1+Number(i.tax||0)/100),0);return gross>0?Number(b.grandTotal||0)/gross:1}
+let retState=null;
+function openBillReturn(id){
+  const b=DB.bills.find(x=>x.id===id); if(!b||b.status==='Cancelled'||b.status==='Draft')return;
+  const done=kpReturnedQty(id), f=kpBillPriceFactor(b);
+  retState={billId:id,rows:(b.items||[]).map(it=>{const p=kpResolveBillProduct(it);const pid=(p&&p.id)||it.productId;const left=Math.max(0,Number(it.qty||0)-(done[pid]||0));
+    return {productId:pid,name:it.name||(p&&p.name)||'Product',code:(p&&p.code)||'',sold:Number(it.qty||0),left,qty:0,rate:Number(it.rate||0),tax:Number(it.tax||0),unit:Number(it.rate||0)*(1+Number(it.tax||0)/100)*f}})};
+  // the same product on two lines: share what is left
+  const rest={...done};retState.rows.forEach(r=>{const used=Math.min(r.sold,rest[r.productId]||0);rest[r.productId]=(rest[r.productId]||0)-used;r.left=r.sold-used});
+  document.getElementById('retTitle').textContent=(b.invoiceNo||'')+' • '+(b.customer||'');
+  document.getElementById('retDate').value=todayISO(); document.getElementById('retReason').value='';
+  renderBillReturn(); document.getElementById('billReturnOverlay').classList.add('active');
+}
+function closeBillReturn(){document.getElementById('billReturnOverlay').classList.remove('active');retState=null}
+function retSet(i,v){if(!retState)return;const r=retState.rows[i];r.qty=Math.min(r.left,Math.max(0,Math.floor(Number(v)||0)));renderBillReturn()}
+function renderBillReturn(){
+  if(!retState)return;
+  document.getElementById('retItems').innerHTML=retState.rows.map((r,i)=>`<div class="kpRetItem ${r.left?'':'done'}"><div class="nm">${escBill(r.name)}</div><div class="sub">${escBill(r.code)} · Sold ${r.sold} · ${r.left?('Can return '+r.left):'All returned'}</div>
+  ${r.left?`<div class="kpRetStep"><button type="button" onclick="retSet(${i},${r.qty-1})">−</button><input type="number" min="0" max="${r.left}" value="${r.qty}" onchange="retSet(${i},this.value)"><button type="button" onclick="retSet(${i},${r.qty+1})">+</button><span class="amt">${fmt(r.qty*r.unit)}</span></div>`:''}</div>`).join('');
+  document.getElementById('retTotal').textContent=fmt(retState.rows.reduce((s,r)=>s+r.qty*r.unit,0));
+  const past=(DB.returns||[]).filter(x=>x.billId===retState.billId);
+  document.getElementById('retPast').innerHTML=past.length?`<div class="kpRetPast"><b>Earlier returns</b>${past.map(x=>`<div class="row"><span>${x.date} · ${x.items.map(i=>escBill(i.name)+' × '+i.qty).join(', ')} · ${fmt(x.amount)}</span><button class="bill-edit-remove" type="button" onclick="undoBillReturn('${x.id}')">Undo</button></div>`).join('')}</div>`:'';
+}
+async function saveBillReturn(){
+  if(!retState)return;
+  const b=DB.bills.find(x=>x.id===retState.billId); if(!b)return;
+  const rows=retState.rows.filter(r=>r.qty>0);
+  if(!rows.length){toast('Type how many came back');return}
+  const date=document.getElementById('retDate').value||todayISO();
+  const items=rows.map(r=>{const p=DB.products.find(x=>String(x.id)===String(r.productId));return {productId:r.productId,name:r.name,qty:r.qty,rate:r.rate,tax:r.tax,amount:r.qty*r.unit,cost:(p?Number(p.cost||0):0)*r.qty}});
+  const amount=items.reduce((s,i)=>s+i.amount,0), cost=items.reduce((s,i)=>s+i.cost,0);
+  if(!(await appConfirm(`Return ${items.reduce((s,i)=>s+i.qty,0)} item(s) for ${fmt(amount)}? Stock will go back.`)))return;
+  const stockTracked=b.status!=='Draft'&&b.stockApplied!==false;
+  if(stockTracked)items.forEach(i=>{const p=DB.products.find(x=>String(x.id)===String(i.productId));if(p)p.stock=Number(p.stock||0)+i.qty});
+  if(!Array.isArray(DB.returns))DB.returns=[];
+  DB.returns.push({id:uid(),billId:b.id,invoiceNo:b.invoiceNo,customer:b.customer,date,items,amount,cost,stockBack:stockTracked,reason:(document.getElementById('retReason').value||'').trim(),createdAt:new Date().toISOString()});
+  kpAfterReturnChange(b); closeBillReturn(); toast('Return saved. Stock back, sales minus.');
+}
+async function undoBillReturn(id){
+  const r=(DB.returns||[]).find(x=>x.id===id); if(!r)return;
+  if(!(await appConfirm('Undo this return? Stock will go out again and the amount comes back to sales.')))return;
+  if(r.stockBack!==false)(r.items||[]).forEach(i=>{const p=DB.products.find(x=>String(x.id)===String(i.productId));if(p)p.stock=Math.max(0,Number(p.stock||0)-Number(i.qty||0))});
+  DB.returns=DB.returns.filter(x=>x.id!==id);
+  const b=DB.bills.find(x=>x.id===r.billId); kpAfterReturnChange(b);
+  if(retState&&b)openBillReturn(b.id);
+  toast('Return removed');
+}
+function kpAfterReturnChange(b){
+  if(b){const left=kpBillNetQtyMap(b);const any=Object.values(kpReturnedQty(b.id)).some(q=>q>0);b.returnStatus=!any?'':(Object.values(left).every(q=>q<=0)?'Returned':'Part return');if(!b.returnStatus)delete b.returnStatus}
+  kpPersistStockNow(); refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills(); try{renderReports()}catch(e){}
+}
+
+/* ============ SALES REPORT (month wise / day wise) ============ */
+let kpRepView='month';
+function kpBillCost(b){return (b.items||[]).reduce((s,it)=>{const prod=DB.products.find(p=>p.id===it.productId);return s+(prod?Number(prod.cost||0)*Number(it.qty||0):0)},0)}
+function kpRepRows(keyLen,prefix){
+  const m={};
+  const row=k=>m[k]||(m[k]={sales:0,cost:0,exp:0});
+  const take=d=>!!d&&(!prefix||String(d).startsWith(prefix));
+  DB.bills.forEach(b=>{if(b.status==='Cancelled'||!take(b.date))return;const r=row(String(b.date).slice(0,keyLen));r.sales+=Number(b.grandTotal||0);r.cost+=kpBillCost(b)});
+  kpLiveReturns().forEach(x=>{if(!take(x.date))return;const r=row(String(x.date).slice(0,keyLen));r.sales-=Number(x.amount||0);r.cost-=Number(x.cost||0)});
+  (DB.expenses||[]).forEach(e=>{if(!take(e.date))return;row(String(e.date).slice(0,keyLen)).exp+=Number(e.amount||0)});
+  return Object.keys(m).sort().reverse().map(k=>({k,...m[k],profit:m[k].sales-m[k].cost-m[k].exp}));
+}
+function kpRepN(n){return Math.round(Number(n||0)).toLocaleString('en-IN')}
+function kpRepLabel(k){
+  const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if(k.length===7)return M[Number(k.slice(5,7))-1]+' '+k.slice(0,4);
+  return Number(k.slice(8,10))+' '+M[Number(k.slice(5,7))-1];
+}
+function kpRepShow(view,month){
+  kpRepView=view;
+  const inp=document.getElementById('kpRepMonth'); if(!inp)return;
+  if(month)inp.value=month;
+  if(!inp.value)inp.value=todayISO().slice(0,7);
+  document.getElementById('kpRepTabMonth').classList.toggle('active',view==='month');
+  document.getElementById('kpRepTabDay').classList.toggle('active',view==='day');
+  inp.style.display=view==='day'?'':'none';
+  document.getElementById('kpRepHead').textContent=view==='day'?'Date':'Month';
+  document.getElementById('kpRepHint').textContent=(view==='day'?'Days with bills, returns or expenses.':'Tap a month to see its days.')+' Amounts in Rs. Returns are minus on the return day.';
+  const rows=view==='day'?kpRepRows(10,inp.value):kpRepRows(7,'');
+  const body=document.getElementById('kpRepBody');
+  if(!rows.length){body.innerHTML='<tr class="empty-row"><td colspan="5" style="text-align:center">No bills yet</td></tr>';return}
+  const t=rows.reduce((a,r)=>({sales:a.sales+r.sales,cost:a.cost+r.cost,exp:a.exp+r.exp,profit:a.profit+r.profit}),{sales:0,cost:0,exp:0,profit:0});
+  const tr=(lab,r,attr)=>`<tr ${attr||''}><td>${lab}</td><td>${kpRepN(r.sales)}</td><td>${kpRepN(r.cost)}</td><td>${kpRepN(r.exp)}</td><td class="${r.profit<0?'kpNeg':'kpPos'}">${kpRepN(r.profit)}</td></tr>`;
+  body.innerHTML=rows.map(r=>tr(kpRepLabel(r.k),r,view==='month'?`class="kpRepRow" onclick="kpRepShow('day','${r.k}')"`:'')).join('')+tr('Total',t,'class="kpRepTotal"');
+}
 function renderDashboard(){
   const totalStockUnits = DB.products.reduce((s,p)=>s+Number(p.stock||0),0);
   const totalStockValue = DB.products.reduce((s,p)=>s+Number(p.stock||0)*Number(p.cost||0),0);
@@ -2237,25 +2374,29 @@ function renderDashboard(){
   const totalCost = DB.bills.filter(b=>b.status!=='Cancelled').reduce((s,b)=>s+b.items.reduce((si,it)=>{
     const prod = DB.products.find(p=>p.id===it.productId); return si+(prod?Number(prod.cost||0)*Number(it.qty||0):0);
   },0),0);
+  const kpRets = kpLiveReturns();
+  const retSales = kpRets.reduce((s,r)=>s+Number(r.amount||0),0), retCost = kpRets.reduce((s,r)=>s+Number(r.cost||0),0);
   const totalExpenses = DB.expenses.reduce((s,e)=>s+Number(e.amount||0),0);
-  const totalProfit = totalSales - totalCost - totalExpenses;
+  const totalProfit = (totalSales-retSales) - (totalCost-retCost) - totalExpenses;
   const today = todayISO();
   const billsToday = DB.bills.filter(b=>b.date===today && b.status!=='Cancelled');
   const salesToday = billsToday.reduce((s,b)=>s+Number(b.grandTotal||0),0);
   const costToday = billsToday.reduce((s,b)=>s+b.items.reduce((si,it)=>{const prod=DB.products.find(p=>p.id===it.productId);return si+(prod?Number(prod.cost||0)*Number(it.qty||0):0);},0),0);
   const expToday = DB.expenses.filter(e=>e.date===today).reduce((s,e)=>s+Number(e.amount||0),0);
-  const profitToday = salesToday - costToday - expToday;
+  const retToday = kpRets.filter(r=>r.date===today);
+  const profitToday = (salesToday-retToday.reduce((s,r)=>s+Number(r.amount||0),0)) - (costToday-retToday.reduce((s,r)=>s+Number(r.cost||0),0)) - expToday;
 
   document.getElementById('dStockValue').textContent = fmt(totalStockValue).replace('₹','Rs.');
   document.getElementById('dStockSub').textContent = `${totalStockUnits} units across ${DB.products.length} products`;
   document.getElementById('dProfit').textContent = fmt(totalProfit).replace('₹','Rs.');
-  document.getElementById('dProfitSub').textContent = `Sales ${fmt(totalSales).replace('₹','Rs.')} – Cost ${fmt(totalCost).replace('₹','Rs.')} – Expenses ${fmt(totalExpenses).replace('₹','Rs.')}`;
+  document.getElementById('dProfitSub').textContent = `Sales ${fmt(totalSales-retSales).replace('₹','Rs.')} – Cost ${fmt(totalCost-retCost).replace('₹','Rs.')} – Expenses ${fmt(totalExpenses).replace('₹','Rs.')}`;
   if(document.getElementById('dSalesToday')) document.getElementById('dSalesToday').textContent = fmt(salesToday).replace('₹','Rs.');
   document.getElementById('dBillsToday').textContent = billsToday.length;
   document.getElementById('dStockUnits').textContent = totalStockUnits;
   if(document.getElementById('dStockValue2')) document.getElementById('dStockValue2').textContent = fmt(totalStockValue).replace('₹','Rs.');
   document.getElementById('dProfitToday').textContent = fmt(profitToday).replace('₹','Rs.');
   document.getElementById('dExpToday').textContent = fmt(expToday).replace('₹','Rs.');
+  try{kpRepShow(kpRepView)}catch(e){}
 
   const dashLogoBox=document.getElementById('dShopInitials');
   if(DB.shop.logo){
@@ -2799,9 +2940,10 @@ function renderBills(){
   else{
     body.innerHTML=list.map((b,i)=>{
       const cls=b.status==='Paid'?'badge-green':b.status==='Unpaid'?'badge-amber':b.status==='Cancelled'?'badge-red':'badge-blue';
-      return `<tr><td>${i+1}</td><td>${b.invoiceNo}</td><td>${b.date}</td><td>${b.customer}</td><td>${b.mobile||'-'}</td><td>${fmt(b.grandTotal)}</td><td>${b.payment}</td><td><span class="badge ${cls}">${b.status}</span></td>
+      return `<tr><td>${i+1}</td><td>${b.invoiceNo}</td><td>${b.date}</td><td>${b.customer}</td><td>${b.mobile||'-'}</td><td>${fmt(b.grandTotal)}</td><td>${b.payment}</td><td><span class="badge ${cls}">${b.status}</span>${b.returnStatus&&b.status!=='Cancelled'?` <span class="badge badge-red">${b.returnStatus}</span>`:''}</td>
       <td><button class="icon-btn" onclick="viewBill('${b.id}')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
       ${b.status!=='Cancelled'?`<button class="icon-btn edit-bill-btn" title="Edit Bill" onclick="openBillEditor('${b.id}')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>`:''}
+      ${(b.status!=='Cancelled'&&b.status!=='Draft')?`<button class="icon-btn ret-bill-btn" title="Return" onclick="openBillReturn('${b.id}')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>`:''}
       <button class="icon-btn bill-action-btn" title="Bill Actions" onclick="openBillActions('${b.id}')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/><path d="M9 13h6"/><path d="M9 17h6"/></svg></button>
       ${b.status!=='Cancelled'?`<button class="icon-btn" onclick="cancelBill('${b.id}')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>`:''}
       <button class="icon-btn" onclick="deleteBill('${b.id}')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button></td></tr>`;
@@ -2830,7 +2972,7 @@ async function cancelBill(id){
   const shouldRestock = b.status!=='Draft' && b.stockApplied!==false;
   if(!(await appConfirm(shouldRestock?'Cancel this bill and restock items?':'Cancel this draft bill?'))) return;
   if(shouldRestock){
-    const restore=kpStockQtyMap(b.items);
+    const restore=kpBillNetQtyMap(b);
     Object.keys(restore).forEach(pid=>{
       const p=DB.products.find(x=>String(x.id)===String(pid));
       if(p)p.stock=Number(p.stock||0)+Number(restore[pid]||0);
@@ -2849,13 +2991,14 @@ async function deleteBill(id){
   const shouldRestock = b.status!=='Draft' && b.status!=='Cancelled' && b.stockApplied!==false;
   if(!(await appConfirm(shouldRestock?'Delete this bill permanently? Its products will be auto restocked.':'Delete this bill permanently?'))) return;
   if(shouldRestock){
-    const restore=kpStockQtyMap(b.items);
+    const restore=kpBillNetQtyMap(b);
     Object.keys(restore).forEach(pid=>{
       const p=DB.products.find(x=>String(x.id)===String(pid));
       if(p)p.stock=Number(p.stock||0)+Number(restore[pid]||0);
     });
   }
   DB.bills=DB.bills.filter(x=>x.id!==id);
+  DB.returns=(DB.returns||[]).filter(r=>r.billId!==id);
   kpPersistStockNow();
   refreshSelects(); renderProductList(); renderLowStock(); renderDashboard(); renderBills();
   toast(shouldRestock?'Bill deleted. Products restocked successfully.':'Bill deleted');
@@ -2916,6 +3059,7 @@ async function verifyAndFetchGSTIN(){
 let billEditState=null;
 function openBillEditor(id){
   const bill=DB.bills.find(b=>b.id===id); if(!bill || bill.status==='Cancelled') return;
+  if((DB.returns||[]).some(r=>r.billId===id)){ toast('This bill has a return. Undo the return first to edit products.'); return; }
   billEditState={billId:id, originalItems:(bill.items||[]).map(i=>({...i})), items:(bill.items||[]).map(i=>({...i}))};
   document.getElementById('billEditTitle').textContent=bill.invoiceNo+' • '+bill.customer;
   document.getElementById('beInvoiceNo').value=bill.invoiceNo||'';
@@ -3520,7 +3664,8 @@ window.addEventListener('load',initBarcodePrinterProfile);
 /* ============ REPORTS ============ */
 function renderReports(){
   const activeBills=DB.bills.filter(b=>b.status!=='Cancelled');
-  document.getElementById('rSales').textContent=fmt(activeBills.reduce((s,b)=>s+b.grandTotal,0));
+  const kpRets=kpLiveReturns();
+  document.getElementById('rSales').textContent=fmt(activeBills.reduce((s,b)=>s+b.grandTotal,0)-kpRets.reduce((s,r)=>s+Number(r.amount||0),0));
   document.getElementById('rPurchases').textContent=fmt(DB.purchases.reduce((s,p)=>s+p.grandTotal,0));
   document.getElementById('rExpenses').textContent=fmt(DB.expenses.reduce((s,e)=>s+Number(e.amount),0));
   document.getElementById('rCustomers').textContent=DB.customers.length;
@@ -3529,7 +3674,7 @@ function renderReports(){
 
   const days=[]; const now=new Date();
   for(let i=6;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i); days.push(d.toISOString().slice(0,10)); }
-  const daySums=days.map(d=>activeBills.filter(b=>b.date===d).reduce((s,b)=>s+b.grandTotal,0));
+  const daySums=days.map(d=>Math.max(0,activeBills.filter(b=>b.date===d).reduce((s,b)=>s+b.grandTotal,0)-kpRets.filter(r=>r.date===d).reduce((s,r)=>s+Number(r.amount||0),0)));
   const max=Math.max(...daySums,1);
   document.getElementById('salesBars').innerHTML=days.map((d,i)=>{
     const h=Math.max(2,(daySums[i]/max)*100);
@@ -3545,7 +3690,8 @@ function renderReports(){
   const tx=[
     ...activeBills.map(b=>({type:'Sales',ref:b.invoiceNo,date:b.date,amt:b.grandTotal})),
     ...DB.purchases.map(p=>({type:'Purchase',ref:p.purchaseNo,date:p.date,amt:p.grandTotal})),
-    ...DB.expenses.map(e=>({type:'Expense',ref:e.name,date:e.date,amt:e.amount}))
+    ...DB.expenses.map(e=>({type:'Expense',ref:e.name,date:e.date,amt:e.amount})),
+    ...kpRets.map(r=>({type:'Return',ref:r.invoiceNo,date:r.date,amt:-Number(r.amount||0)}))
   ].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6);
   document.getElementById('recentTransactions').innerHTML = tx.length? tx.map(t=>`<div style="display:flex;justify-content:space-between;"><span>${t.type} · ${t.ref}</span><b style="color:${t.type==='Sales'?'var(--accent)':'var(--text)'}">${fmt(t.amt)}</b></div>`).join('') : 'No transactions yet';
 }
