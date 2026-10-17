@@ -1,6 +1,6 @@
 {
-  "versionCode": 24,
-  "versionName": "2.4.0",
+  "versionCode": 25,
+  "versionName": "2.5.0",
   "apkUrl": "https://github.com/lovely3971/kpro-printer-android/releases/download/latest/app-debug.apk",
-  "notes": "V24: Return button on bills (stock back, sales minus on the return day, Undo); Dashboard month wise / day wise Sales, Cost, Expense, Profit report."
+  "notes": "V25: Back / Refresh hide while a popup (Edit Bill, Return...) is open, so Save is never covered; iPhone date boxes fit."
 }
