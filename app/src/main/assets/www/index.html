@@ -283,6 +283,45 @@ html.kp-native-android body.kp-activation-screen #screenActivate .design{width:1
 
 </style>
 <script>try{if(window.KPRO_NATIVE)document.documentElement.classList.add('kp-native-android')}catch(e){}</script>
+<style id="kpDesktopSystemDesign">
+/* Laptop / PC: the approved System desktop artwork (Activation + selector). Phones keep the mobile design. */
+@media (min-width:900px) and (min-aspect-ratio:4/3){
+/* SYSTEM MASTER DESIGN — exact approved artwork, viewport-adaptive only. */
+html,body{width:100%;height:100%;margin:0!important;padding:0!important;overflow:hidden!important;background:#020702!important}
+body{display:block!important;min-width:0!important}
+#screenActivate,#screenShop{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;border-radius:0!important;overflow:hidden!important;box-shadow:none!important;background:#020702!important}
+#screenActivate .design,#screenShop .design{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;object-fit:fill!important;margin:0!important;padding:0!important}
+/* Hotspots remain percentage-mapped to the approved 1536×1024 master artwork. */
+#codeFieldBg{left:23.7%!important;top:45.3%!important;width:52%!important;height:7.6%!important;background:#050805!important;border-radius:8px!important}
+#activationCode{left:23.7%!important;top:45.3%!important;width:52%!important;height:7.6%!important;padding:0 9.5% 0 6.1%!important;font-size:clamp(16px,1.55vw,28px)!important}
+#eyeBtn{left:69.7%!important;top:46.1%!important;width:5.5%!important;height:5.8%!important}
+#actBtn{left:23.7%!important;top:54%!important;width:52%!important;height:7.7%!important}
+#logoutBtn{left:23.7%!important;top:63%!important;width:52%!important;height:8%!important}
+#tabsCover,#oldCtaCover{display:none!important}
+/* Selector controls are real HTML overlays so text never disappears from the artwork. */
+.realtab{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:clamp(5px,.55vw,10px)!important;border:1px solid rgba(55,118,22,.24)!important;box-shadow:0 10px 28px rgba(21,70,12,.10)!important;transform:none!important;border-radius:clamp(12px,1.1vw,20px)!important;font-weight:900!important;font-size:clamp(15px,1.35vw,24px)!important;letter-spacing:.01em!important;cursor:pointer!important}
+.realtab svg{display:block!important;width:clamp(28px,2.7vw,48px)!important;height:clamp(28px,2.7vw,48px)!important;opacity:1!important}
+.realtab span{display:block!important;opacity:1!important}
+#tab-login{left:19.65%!important;top:52.6%!important;width:18.2%!important;height:12.5%!important;background:linear-gradient(180deg,#111a12,#071008)!important;color:#fff!important;border-color:#1f3c1e!important}
+#tab-create{left:39.95%!important;top:52.6%!important;width:19.1%!important;height:12.5%!important;background:linear-gradient(180deg,#effbe5,#dff3cf)!important;color:#244d13!important;border-color:#b9dfa2!important}
+#tab-join{left:61.15%!important;top:52.6%!important;width:19.25%!important;height:12.5%!important;background:linear-gradient(180deg,#ffe76c,#ffc928)!important;color:#392f00!important;border-color:#e4b900!important}
+#realBackBtn{left:19.65%!important;top:66.45%!important;width:60.75%!important;height:6.25%!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:clamp(8px,.8vw,14px)!important;background:#101711!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:clamp(10px,.8vw,16px)!important;box-shadow:0 8px 20px rgba(0,0,0,.16)!important;color:#fff!important;font-size:clamp(14px,1.15vw,21px)!important;font-weight:900!important;cursor:pointer!important}
+#realBackBtn .circ{display:flex!important;align-items:center!important;justify-content:center!important;width:clamp(26px,2.2vw,40px)!important;height:clamp(26px,2.2vw,40px)!important;border:2px solid #9be63c!important;border-radius:50%!important;color:#9be63c!important;opacity:1!important}
+#realBackBtn .circ svg{width:55%!important;height:55%!important}
+#realBackBtn span{opacity:1!important}
+/* Form screens stay functional desktop workspaces. */
+#screenCreateShop,#screenJoinShop,#screenLogin,#screenDashboard{width:min(1120px,calc(100vw - 48px))!important;max-width:1120px!important;margin:0 auto!important}
+#screenCreateShop .csPage,#screenJoinShop .jsPage,.lpPage,.dbPage{min-height:0!important;max-width:1120px!important;margin:0 auto!important;border-radius:22px!important;overflow:auto!important;box-shadow:0 24px 80px rgba(0,0,0,.38)!important}
+
+#eyeBtn{display:flex!important;align-items:center!important;justify-content:center!important;z-index:9!important;background:transparent!important}
+#eyeBtn svg{display:block!important;width:54%!important;height:54%!important;opacity:1!important;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+#screenShop .design{z-index:1!important}
+#screenShop .realtab,#screenShop #realBackBtn{z-index:5!important}
+
+html body #kpBillingFloatNav,html body #screenBillingApp.active #kpBillingFloatNav{display:none!important}
+
+}
+</style>
 
 <style id="kpCompactBackRefreshV1">
 #kpBillingFloatNav{
@@ -333,14 +372,14 @@ html.kp-native-android body.kp-activation-screen #screenActivate .design{width:1
   </div>
 </div>
 <div class="screen" id="screenActivate">
-<img class="design" src="activate-design.webp" alt="Kanakku Pulla PRO Activation">
+<picture><source media="(min-width:900px) and (min-aspect-ratio:4/3)" srcset="activation-system.webp?v=selector-v3"><img class="design" src="activate-design.webp" alt="Kanakku Pulla PRO Activation"></picture>
 <div id="codeField"><div id="codeFieldBg"></div></div><input type="text" id="activationCode" class="kp-code-hidden" placeholder="Enter Activation Code" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" inputmode="text" data-form-type="other">
 <button class="hot" id="eyeBtn" onclick="toggleCodeVisibility()" aria-label="Show code"></button>
 <button class="hot" id="actBtn" onclick="activateDevice()" aria-label="Activate"></button>
 <button class="hot" id="logoutBtn" onclick="logoutDevice()" aria-label="Logout"></button>
 </div>
 <div class="screen" id="screenShop">
-<img class="design" src="shop-design.webp?v=14" alt="Kanakku Pulla PRO Login Create Shop Join Shop">
+<picture><source media="(min-width:900px) and (min-aspect-ratio:4/3)" srcset="selector-system.webp?v=selector-v3"><img class="design" src="shop-design.webp?v=14" alt="Kanakku Pulla PRO Login Create Shop Join Shop"></picture>
 <div id="tabsCover"></div>
 <button class="realtab active" id="tab-login" onclick="selectTab('login');doMainAction()">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
@@ -371,7 +410,7 @@ html.kp-native-android body.kp-activation-screen #screenActivate .design{width:1
       <div class="lpField"><label>Password <span style="color:#5eaa17">*</span></label><div class="lpPwd"><input id="lpPassword" type="password" autocomplete="current-password" placeholder="Enter Password"><button class="lpEye" type="button" onclick="lpTogglePwd()" aria-label="Show password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
       <div style="text-align:right;margin-top:2px;margin-bottom:10px"><button type="button" onclick="lpForgotPassword()" style="border:0;background:transparent;color:#67b91f;font-weight:900;font-size:14px;cursor:pointer;padding:6px 2px;text-decoration:underline;text-underline-offset:3px">Forgot Password?</button></div>
       <div id="lpMessage" class="lpMsg"></div>
-      <div class="lpActions"><button class="lpBtn lpBack" type="button" onclick="showScreen('shop')">Back</button><button class="lpBtn lpMain" type="button" onclick="lpLogin()">LOGIN</button></div>
+      <div class="lpActions"><button class="lpBtn lpBack" type="button" onclick="kpBackFromLogin()">Back</button><button class="lpBtn lpMain" type="button" onclick="lpLogin()">LOGIN</button></div>
       <div class="lpFooter">A LOVELY SHOPPE BRAND • BILLING SOFTWARE</div>
     </div>
   </div>
@@ -1126,6 +1165,11 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 </div>
 </div>
 <div class="header-right">
+<button class="kpHeaderNavBtn" id="kpHeaderBackBtn" onclick="parent.kpBillingBack()" type="button" title="Back">← Back</button>
+<button class="kpHeaderNavBtn" id="kpHeaderRefreshBtn" onclick="parent.kpBillingHardRefresh()" type="button" title="Refresh">↻ Refresh</button>
+<style>.kpHeaderNavBtn{display:none;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--text);height:36px;padding:0 10px;font-size:12px;font-weight:700;cursor:pointer;align-items:center;justify-content:center;gap:5px;white-space:nowrap;transition:.15s}
+.kpHeaderNavBtn:hover{border-color:var(--accent);color:var(--accent)}.kpHeaderNavBtn:disabled{opacity:.55;cursor:wait}
+@media (min-width:900px) and (min-aspect-ratio:4/3){.kpHeaderNavBtn{display:inline-flex}}@media print{.kpHeaderNavBtn{display:none!important}}</style>
 <div class="user-chip">
 <div class="avatar-round"><svg class="ic" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path></svg></div>
 <div><div class="user-name">Admin</div><div class="user-role">Owner</div></div>
@@ -2123,7 +2167,7 @@ function goTo(page, el, fromBack){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const pageEl=document.getElementById('page-'+page);if(pageEl)pageEl.classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
-  setTimeout(kpRenderTrialTimer,0);
+  setTimeout(()=>{try{(window.kpRenderTrialTimer||parent.kpRenderTrialTimer)()}catch(e){}},0);
 }
 window.kpInternalBack=function(){
   let prev=window.kpPageHistory.length?window.kpPageHistory.pop():'dashboard';
@@ -3249,7 +3293,21 @@ function applyFixedBarcodeDesign(){
   if(snap.anyDims&&isAnyBarcodeMode())[['anyLabelLength','l'],['anyLabelHeight','h'],['anyRollWidth','w'],['anyLabelGap','gap']].forEach(([id,k])=>{const el=document.getElementById(id);if(el&&snap.anyDims[k]!=null)el.value=snap.anyDims[k];});
   barcodeDesign=JSON.parse(JSON.stringify(snap.design));activeBarcodeLayoutType=snap.type;renderBarcodeEditor();previewLabelsLive();return true;
 }
-window.addEventListener('load',()=>setTimeout(applyFixedBarcodeDesign,120));
+// the older System copy saved the fixed label design under another name, and the older
+// Mobile copy kept only the design itself: carry it over once so nobody has to set it again
+function kpMigrateFixedBarcodeDesign(){
+  try{
+    if(localStorage.getItem(KP_FIXED_BARCODE_DESIGN_KEY))return;
+    let old=null;try{old=JSON.parse(localStorage.getItem('kp_pro_fixed_barcode_design_v1')||'null')}catch(e){}
+    if(!(old&&old.type)&&!localStorage.getItem(barcodeDesignKey()))return;
+    const snap={version:1,type:(old&&old.type)||currentLabelType(),labelsPerRow:(old&&old.up)||jewelLabelsPerRow(),
+      printerProfile:localStorage.getItem('kp_barcode_printer_profile')||'auto',design:loadBarcodeDesign()};
+    if(old&&old.jewelDims)snap.jewelDims=old.jewelDims;
+    if(old&&old.anyDims)snap.anyDims=old.anyDims;
+    localStorage.setItem(KP_FIXED_BARCODE_DESIGN_KEY,JSON.stringify(snap));
+  }catch(e){}
+}
+window.addEventListener('load',()=>setTimeout(()=>{kpMigrateFixedBarcodeDesign();applyFixedBarcodeDesign()},120));
 let barcodeHoldTimer=null,barcodeHoldDelay=null;
 function stopBarcodeHold(){clearInterval(barcodeHoldTimer);clearTimeout(barcodeHoldDelay);barcodeHoldTimer=barcodeHoldDelay=null;}
 function bindBarcodeHoldButtons(){document.querySelectorAll('.barcode-hold').forEach(btn=>{if(btn.dataset.holdBound)return;btn.dataset.holdBound='1';const fire=()=>{if(btn.dataset.action==='move')moveBarcodeEl(btn.dataset.value);else sizeBarcodeEl(Number(btn.dataset.value));};btn.addEventListener('pointerdown',e=>{e.preventDefault();stopBarcodeHold();barcodeHoldDelay=setTimeout(()=>{fire();barcodeHoldTimer=setInterval(fire,75);},320);});['pointerup','pointercancel','pointerleave'].forEach(ev=>btn.addEventListener(ev,stopBarcodeHold));});}
@@ -5609,20 +5667,38 @@ function selectTab(tab){
   const el=document.getElementById('tab-'+tab); if(el) el.classList.add('active');
 }
 
+function kpResetRemovedDeviceActivation(){
+  // Backend is the source of truth. If Admin removes this activated-device row,
+  // clear the old device/shop identity so this same browser starts fresh.
+  const s=loadState();
+  const keepDeviceId=s.deviceId||ensureDeviceId();
+  saveState({deviceId:keepDeviceId,activated:false});
+  const keys=[
+    'kp_pro_device_activated_v1','kp_device_shop_binding_v1','kp_pro_device_binding_v1',
+    'kp_pro_cloud_shop_id','kp_pro_access_context','kp_pro_owner_logged_in',
+    'kp_pro_shop_created','kp_pro_joined_staff','kp_pro_joined_shop','kp_staff_auth_v1',
+    'kp_pending_create_shop','kp_pending_join','kp_pro_shop_profile','kanakkuProDB_v1','kp_cloud_synced_hash'
+  ];
+  keys.forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
+  try{kpSb.auth.signOut()}catch(e){}
+  kpApplyBoundLoginUI();
+  const input=document.getElementById('activationCode');if(input)input.value='';
+  showScreen('activate');
+}
 async function kpValidateStoredActivation(showMessage=true){
   const s=loadState();
   if(!s.activated||!s.activationCode)return false;
   try{
-    const {data,error}=await kpSb.rpc('verify_activation',{p_code:s.activationCode,p_device_id:s.deviceId||ensureDeviceId()});
+    // Reopen checks use the read-only validator: it never recreates a device row that Admin deleted.
+    const {data,error}=await kpSb.rpc('validate_device_activation',{p_code:s.activationCode,p_device_id:s.deviceId||ensureDeviceId()});
     // A temporary network/API error must never forget an already activated device.
     if(error||!data){
       if(showMessage) toast('Connection issue — this device remains activated');
       return true;
     }
-    // Only an explicit backend rejection may revoke local activation.
     if(!data.ok){
-      s.activated=false;saveState(s);try{localStorage.removeItem('kp_pro_device_activated_v1')}catch(e){};showScreen('activate');
-      if(showMessage) toast(data.error||'Trial / Activation expired');
+      kpResetRemovedDeviceActivation();
+      if(showMessage) toast(data.error||'Activation removed — activate this device again');
       return false;
     }
     kpApplyActivationMeta(s,data); saveState(s); kpRenderTrialTimer();
@@ -5647,7 +5723,20 @@ function kpOwnerBoundEmail(){
   const b=kpGetDeviceBinding(); if(b&&b.role==='owner'&&b.email)return String(b.email).toLowerCase();
   try{const p=JSON.parse(localStorage.getItem('kp_pro_shop_profile')||'{}')||{};return String(p.email||'').toLowerCase()}catch(e){return ''}
 }
-function kpApplyBoundLoginUI(){const b=kpGetDeviceBinding();document.body.classList.toggle('kp-owner-bound',!!(b&&b.role==='owner'))}
+function kpOwnerShopSetupComplete(){
+  const b=kpGetDeviceBinding();
+  return !!(b&&b.role==='owner'&&localStorage.getItem('kp_pro_shop_created')==='true');
+}
+function kpApplyBoundLoginUI(){
+  // Hide Login Back only after this device really has a completed owner shop setup.
+  document.body.classList.toggle('kp-owner-bound',kpOwnerShopSetupComplete());
+}
+function kpBackFromLogin(){
+  const s=loadState();
+  if(!s.activated||!s.activationCode){showScreen('activate');return;}
+  if(localStorage.getItem('kp_pro_shop_created')!=='true'){showScreen('createshop');return;}
+  showScreen('shop');
+}
 async function kpRouteBoundDevice(){
   const s=loadState();
   if(!s.activated||!s.activationCode){showScreen('activate');return}
