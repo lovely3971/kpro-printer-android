@@ -6181,6 +6181,17 @@ function kpHash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(
 const kpJ=(v)=>JSON.stringify(v===undefined?null:v);
 const kpKeyOf=(x)=>x&&typeof x==='object'?(x.id!=null?'id:'+x.id:'j:'+kpJ(x)):'v:'+kpJ(x);
 
+// a real stock count is never bigger than this (a broken sync made -5.2e+50)
+const KP_STOCK_MAX=1e9;
+const kpSaneStock=(v)=>Number.isFinite(Number(v))&&Math.abs(Number(v))<=KP_STOCK_MAX;
+// broken stock numbers (huge / not a number) -> 0, so the shop can count and add again
+function kpRepairStock(db){
+  let n=0;
+  if(db&&Array.isArray(db.products))for(const p of db.products){
+    if(p&&p.stock!==undefined&&p.stock!==''&&!kpSaneStock(p.stock)){p.stock=0;n++}
+  }
+  return n;
+}
 function kpMergeObj(b,l,r){
   if(!l||!r||typeof l!=='object'||typeof r!=='object'||Array.isArray(l)||Array.isArray(r)){
     if(kpJ(l)===kpJ(r))return l;
@@ -6193,7 +6204,13 @@ function kpMergeObj(b,l,r){
     if(!(k in l)){ if(b&&(k in b))continue; out[k]=R; continue; }
     if(!(k in r)){ if(b&&(k in b)&&kpJ(L)===kpJ(B))continue; out[k]=L; continue; }
     // stock: both devices' sales count (10 -2 here, -2 there = 6)
-    if(KP_DELTA_FIELDS[k]&&b&&(k in b)&&L!==''&&R!==''&&B!==''&&isFinite(L)&&isFinite(R)&&isFinite(B)){out[k]=Number(B)+(Number(L)-Number(B))+(Number(R)-Number(B));continue}
+    // FIX: the same number on both = already counted once (it was counted twice and
+    // doubled on every sync, up to -5e+50). A broken huge number is never used.
+    if(KP_DELTA_FIELDS[k]&&b&&(k in b)&&L!==''&&R!==''&&B!==''&&isFinite(L)&&isFinite(R)&&isFinite(B)){
+      if(kpJ(L)===kpJ(R)){out[k]=L;continue}
+      const nl=Number(L),nr=Number(R),nb=Number(B);
+      if(!kpSaneStock(nl)||!kpSaneStock(nr)||!kpSaneStock(nb)){out[k]=kpSaneStock(nl)?L:kpSaneStock(nr)?R:0;continue}
+      out[k]=nb+(nl-nb)+(nr-nb);continue}
     if(kpJ(L)===kpJ(R)){out[k]=L;continue}
     if(b&&kpJ(L)===kpJ(B)){out[k]=R;continue}
     if(b&&kpJ(R)===kpJ(B)){out[k]=L;continue}
@@ -6233,6 +6250,7 @@ function kpMergeDB(base,local,remote){
     if(KP_SEQ_KEYS[k]){out[k]=Math.max(Number(L)||1,Number(R)||1);continue}
     out[k]=kpMergeObj(B,L,R);
   }
+  kpRepairStock(out);
   // next numbers always after the highest number already used
   if(Array.isArray(out.bills))out.billSeq=Math.max(Number(out.billSeq)||1,kpMaxSeq(out.bills,'invoiceNo')+1);
   if(Array.isArray(out.purchases))out.purchaseSeq=Math.max(Number(out.purchaseSeq)||1,kpMaxSeq(out.purchases,'purchaseNo')+1);
@@ -6282,8 +6300,18 @@ function kpLand(sent,result,at){
   kpSyncBase=JSON.parse(resRaw); kpSyncAt=at||kpSyncAt; kpLastCloudPayload=resRaw;
   if(same){try{localStorage.setItem(KP_SYNCED_KEY,kpHash(resRaw))}catch(e){}}
 }
+const KP_TAB_ID=Math.random().toString(36).slice(2)+Date.now().toString(36);
+function kpSyncTabOk(){
+  try{
+    const o=JSON.parse(localStorage.getItem('kp_sync_tab')||'null');
+    if(o&&o.id!==KP_TAB_ID&&Date.now()-Number(o.at||0)<8000)return false; // another tab of this browser is syncing
+    localStorage.setItem('kp_sync_tab',JSON.stringify({id:KP_TAB_ID,at:Date.now()}));
+  }catch(e){}
+  return true;
+}
 kpCloudSave=async function(){
   if(kpSyncBusy){kpSyncAgain=true;return}
+  if(!kpSyncTabOk())return;
   const shopId=kpGetCloudShopId();if(!shopId)return;
   const {data:{session}}=await kpSb.auth.getSession();if(!session)return;
   kpSyncBusy=true;
@@ -6326,6 +6354,9 @@ kpStartCloudSync=function(){if(kpCloudTimer)clearInterval(kpCloudTimer);kpCloudT
       if(!full)return;
       kpSyncBase=full.data||{};kpSyncAt=full.updated_at||null;
       const cloudRaw=JSON.stringify(kpSyncBase);
+      // broken stock (eg -5.2e+50) -> 0 on this device; saved to the cloud on the next round
+      if(!local){try{const cur=JSON.parse(localStorage.getItem(KP_DB_KEY)||'null');if(cur&&kpRepairStock(cur)){local=cur}}catch(e){}}
+      if(local)kpRepairStock(local);
       if(local){
         const merged=kpMergeDB(null,local,kpSyncBase);
         kpWriteLocalDB(merged);
