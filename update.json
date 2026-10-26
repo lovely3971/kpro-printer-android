@@ -1,6 +1,6 @@
 {
-  "versionCode": 27,
-  "versionName": "2.7.0",
+  "versionCode": 28,
+  "versionName": "2.8.0",
   "apkUrl": "https://github.com/lovely3971/kpro-printer-android/releases/download/latest/app-debug.apk",
-  "notes": "V27: Edit Product saves the stock you type. V26: stock no longer doubles between phones; Stock Adjustment search box."
+  "notes": "V28: Barcode labels print on the PC without a popup. V27: Edit Product saves the stock you type."
 }
