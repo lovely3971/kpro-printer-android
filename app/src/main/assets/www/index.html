@@ -1491,7 +1491,7 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 <div class="section-title"><div class="section-title-left"><div class="section-icon"><svg class="ic" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M7 4l-4 4 4 4"></path><path d="M3 8h13"></path><path d="M17 20l4-4-4-4"></path><path d="M21 16H8"></path></svg></div><div><h2>Stock Adjustment</h2><p>Manually adjust product stock quantities</p></div></div></div>
 <div class="grid g2">
 <div class="field"><label class="field-label">Category Filter</label><div style="display:flex;gap:8px;align-items:center"><select id="adjCategory" onchange="filterAdjustmentProducts();updateAdjustmentCategoryDeleteButton()"><option value="">All Categories</option></select><button class="btn btn-danger-line btn-sm" disabled="" id="adjDeleteCategoryBtn" onclick="deleteAdjustmentCategory()" style="white-space:nowrap" type="button">Delete Category</button></div></div>
-<div class="field"><label class="field-label">Product <span class="req">*</span></label><select id="adjProduct"></select></div>
+<div class="field"><label class="field-label">Product <span class="req">*</span></label><input id="adjSearch" type="search" autocomplete="off" placeholder="🔍 Search product name or code" oninput="filterAdjustmentProducts(true)" style="margin-bottom:8px"/><select id="adjProduct"></select></div>
 <div class="field"><label class="field-label">Adjustment Type <span class="req">*</span></label><select id="adjType"><option value="add">Add Stock</option><option value="remove">Remove Stock</option></select></div>
 <div class="field"><label class="field-label">Quantity <span class="req">*</span></label><input id="adjQty" placeholder="0"/></div>
 <div class="field"><label class="field-label">Reason</label><input id="adjReason" placeholder="Damage, correction, etc."/></div>
@@ -2585,18 +2585,24 @@ function refreshAdjustmentCategoryFilter(){
   sel.value=match||'';
   updateAdjustmentCategoryDeleteButton();
 }
-function filterAdjustmentProducts(){
+function filterAdjustmentProducts(fromSearch){
   const catSel=document.getElementById('adjCategory');
   const prodSel=document.getElementById('adjProduct');
   if(!prodSel)return;
   const category=catSel?String(catSel.value||'').trim():'';
   const key=category.toLocaleLowerCase();
   const current=prodSel.value;
-  const list=(DB.products||[]).filter(p=>!category || String((p&&p.category)||'').trim().toLocaleLowerCase()===key);
+  // search box: product name or code (barcode too)
+  const qEl=document.getElementById('adjSearch');
+  const q=qEl?String(qEl.value||'').trim().toLocaleLowerCase():'';
+  const hit=p=>!q||[p&&p.name,p&&p.code,p&&p.barcode].some(v=>String(v||'').toLocaleLowerCase().includes(q));
+  const list=(DB.products||[]).filter(p=>(!category || String((p&&p.category)||'').trim().toLocaleLowerCase()===key)&&hit(p));
   prodSel.innerHTML='';
-  if(!list.length){ const o=document.createElement('option'); o.value=''; o.textContent='No products in this category'; prodSel.appendChild(o); }
-  else list.forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=`${p.name} (${Number(p.stock||0)} ${p.unit||''})`; prodSel.appendChild(o); });
-  if(list.some(p=>p.id===current))prodSel.value=current;
+  if(!list.length){ const o=document.createElement('option'); o.value=''; o.textContent=q?'No product found':'No products in this category'; prodSel.appendChild(o); }
+  else list.forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=`${p.name}${p.code?' – '+p.code:''} (${Number(p.stock||0)} ${p.unit||''})`; prodSel.appendChild(o); });
+  // typing a search picks the first match; otherwise the chosen product stays
+  if(fromSearch===true&&list.length)prodSel.value=list[0].id;
+  else if(list.some(p=>p.id===current))prodSel.value=current;
   updateAdjustmentCategoryDeleteButton();
 }
 function updateAdjustmentCategoryDeleteButton(){
