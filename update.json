@@ -1,6 +1,6 @@
 {
-  "versionCode": 26,
-  "versionName": "2.6.0",
+  "versionCode": 27,
+  "versionName": "2.7.0",
   "apkUrl": "https://github.com/lovely3971/kpro-printer-android/releases/download/latest/app-debug.apk",
-  "notes": "V26: Stock no longer doubles between phones (broken stock like -5.2e+50 becomes 0, count and add again); Stock Adjustment has a product name / code search box."
+  "notes": "V27: Edit Product saves the stock you type. V26: stock no longer doubles between phones; Stock Adjustment search box."
 }

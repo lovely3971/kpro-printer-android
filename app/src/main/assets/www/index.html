@@ -2479,7 +2479,12 @@ async function saveProduct(){
     hsn, unit: document.getElementById('pUnit').value,
     cost:Number(cost), sell:Number(sell), mrp:Number(document.getElementById('pMRP').value||0),
     gst:Number(document.getElementById('pGST').value), taxType: document.getElementById('pTaxType').value,
-    stock: editId ? (DB.products.find(p=>p.id===editId)?.stock ?? Number(document.getElementById('pStock').value||0)) : Number(document.getElementById('pStock').value||0),
+    // Edit: the stock typed in the box is saved (before it was ignored and the old stock
+    // stayed). Empty / not a number / a broken huge number -> the old stock stays.
+    stock: (()=>{const raw=String(document.getElementById('pStock').value||'').trim(), v=Number(raw);
+      const old=editId?DB.products.find(p=>p.id===editId)?.stock:undefined;
+      if(raw!==''&&Number.isFinite(v)&&Math.abs(v)<=1e9)return v;
+      return editId?(old??0):0;})(),
     lowStock:Number(document.getElementById('pLowStock').value||3),
     supplier: document.getElementById('pSupplier').value,
     desc: document.getElementById('pDesc').value.trim()
