@@ -2652,16 +2652,21 @@ function importProducts(e){
 
 /* ============ PRODUCT SEARCH + CAMERA SCAN (Billing & Purchases) ============ */
 function findProductByQuery(q){
-  q=(q||'').trim().toLowerCase(); if(!q) return null;
+  // spaces / capitals do not matter; a number code (from an import) works too
+  const nm=(v)=>String(v==null?'':v).toLowerCase().replace(/\s+/g,' ').trim();
+  q=nm(q); if(!q) return null;
+  const list=DB.products||[];
+  const full=list.find(p=>nm(`${p.name} (${p.code})`)===q); if(full) return full;
   const formatted=q.match(/\(([^()]+)\)\s*$/);
-  if(formatted){ const code=formatted[1].trim(); const exact=DB.products.find(p=>p.code.toLowerCase()===code); if(exact) return exact; }
-  return DB.products.find(p=>p.code.toLowerCase()===q) ||
-         DB.products.find(p=>p.name.toLowerCase()===q) ||
-         DB.products.find(p=>p.code.toLowerCase().includes(q)||p.name.toLowerCase().includes(q)) || null;
+  if(formatted){ const code=nm(formatted[1]); const exact=list.find(p=>nm(p.code)===code); if(exact) return exact; }
+  return list.find(p=>nm(p.code)===q) ||
+         list.find(p=>nm(p.name)===q) ||
+         list.find(p=>nm(p.code).includes(q)||nm(p.name).includes(q)) || null;
 }
 function addItemBySearch(context){
   const inputId = context==='bill' ? 'billItemSearch' : 'purItemSearch';
   const input=document.getElementById(inputId);
+  if(!String(input.value||'').trim()) return; // Enter on an empty box (also the 2nd Enter handler) -> nothing
   const product=findProductByQuery(input.value);
   if(!product){ toast('Product not found'); return; }
   if(context==='bill') addBillRowForProduct(product); else addPurchaseRowForProduct(product);
@@ -4121,6 +4126,12 @@ window.kpApplyCloudDB=function(d){try{DB=Object.assign(defaultDB(),d)}catch(e){r
   try{renderSuppliers()}catch(e){} try{renderCustomers()}catch(e){} try{renderStaff()}catch(e){} try{renderReports()}catch(e){}
   try{kpApplyStaffAccess()}catch(e){}
 };
+// another tab / window of this app (or the cloud sync) saved new data -> this screen uses it at once,
+// so an old copy here never saves over it (a product added on another phone / tab is not lost)
+window.addEventListener('storage',function(e){
+  if(e.key!==STORE_KEY||!e.newValue)return;
+  try{const d=JSON.parse(e.newValue);if(e.newValue!==JSON.stringify(DB))window.kpApplyCloudDB(d)}catch(_){}
+});
 renderAll();
 </script>
 <div class="bill-action-overlay" id="billActionOverlay" onclick="if(event.target===this)closeBillActions()">
