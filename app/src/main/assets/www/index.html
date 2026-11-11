@@ -939,6 +939,7 @@ body[data-kp-light-theme="1"] tr:hover td{background:rgba(var(--accent-rgb),.06)
 .bill-paper.thermal-paper .thermal-item-head{font-weight:900;border-bottom:1px solid #111;padding:4px 1px;font-size:9px}
 .bill-paper.thermal-paper .thermal-item-row{border-bottom:1px dotted #aaa;padding:5px 1px;font-size:9.5px}
 .bill-paper.thermal-paper .thermal-item-head span,.bill-paper.thermal-paper .thermal-item-row span{min-width:0!important;overflow:hidden!important;text-overflow:clip!important;white-space:nowrap!important;color:#000!important}
+.bill-paper.thermal-paper .thermal-item-row .t-code{white-space:normal!important;overflow:visible!important;word-break:break-word!important;overflow-wrap:anywhere!important;line-height:1.25!important}.bill-paper.thermal-paper .thermal-item-row .t-name{display:block;font-weight:800}.bill-paper.thermal-paper .thermal-item-row .t-sku{display:block;font-size:.88em}
 .bill-paper.thermal-paper .thermal-item-head span:nth-child(n+2),.bill-paper.thermal-paper .thermal-item-row span:nth-child(n+2){text-align:right!important}
 .bill-paper[data-print-paper="58mm"].thermal-paper .thermal-item-head{font-size:7.4px!important;column-gap:1px!important}
 .bill-paper[data-print-paper="58mm"].thermal-paper .thermal-item-row{font-size:7.9px!important;column-gap:1px!important;padding:4px 0!important}
@@ -3895,7 +3896,9 @@ function buildBillPaper(b){
     const p=DB.products.find(x=>x.id===it.productId)||{};
     const base=Number(it.qty||0)*Number(it.rate||0); const itemTax=base*Number(it.tax||0)/100;
     const same=(b.state||'Tamil Nadu')==='Tamil Nadu'; const cg=same?itemTax/2:0, sg=same?itemTax/2:0, ig=same?0:itemTax;
-    return `<tr><td>${idx+1}</td><td>${escBill(p.code||'-')}</td><td>${escBill(it.qty)}</td><td>${escBill(p.unit||'PCS')}</td><td>${Number(it.rate||0).toFixed(2)}</td><td>${Number(it.tax||0).toFixed(0)}%</td><td>${base.toFixed(2)}</td><td>${cg?cg.toFixed(2):'—'}</td><td>${sg?sg.toFixed(2):'—'}</td><td>${ig?ig.toFixed(2):'—'}</td><td>${(base+itemTax).toFixed(2)}</td></tr>`;
+    const nm=p.name||it.name||'', cd=p.code||it.code||'';
+    // product name + code (both shown)
+    return `<tr><td>${idx+1}</td><td>${nm?`<b>${escBill(nm)}</b>`:''}${nm&&cd?'<br>':''}${cd?`<span style="font-size:.85em">${escBill(cd)}</span>`:(nm?'':'-')}</td><td>${escBill(it.qty)}</td><td>${escBill(p.unit||'PCS')}</td><td>${Number(it.rate||0).toFixed(2)}</td><td>${Number(it.tax||0).toFixed(0)}%</td><td>${base.toFixed(2)}</td><td>${cg?cg.toFixed(2):'—'}</td><td>${sg?sg.toFixed(2):'—'}</td><td>${ig?ig.toFixed(2):'—'}</td><td>${(base+itemTax).toFixed(2)}</td></tr>`;
   }).join('');
   const initials=(shop.name||'KP').split(/\s+/).map(x=>x[0]||'').join('').slice(0,2).toUpperCase();
   const logo=shop.logo?`<img src="${shop.logo}" alt="Shop Logo">`:escBill(initials||'KP');
@@ -3912,9 +3915,10 @@ function buildThermalBillPaper(b){
     const p=DB.products.find(x=>x.id===it.productId)||{};
     const qty=Number(it.qty||0), rate=Number(it.rate||0), taxPct=Number(it.tax||0);
     const total=(qty*rate)*(1+taxPct/100);
-    const code=p.code||it.code||'-';
+    const code=p.code||it.code||'', name=p.name||it.name||'';
     // Use a fixed 4-column grid instead of a table so 58mm/80mm previews never clip QTY/RATE/AMOUNT.
-    return `<div class="thermal-item-row"><span class="t-code">${escBill(code)}</span><span class="t-qty">${qty}</span><span class="t-rate">${rate.toFixed(2)}</span><span class="t-amount">${total.toFixed(2)}</span></div>`;
+    // Item column: product name + code; long names wrap to the next line on any paper size (never cut)
+    return `<div class="thermal-item-row"><span class="t-code">${name?`<b class="t-name">${escBill(name)}</b>`:''}${code?`<small class="t-sku">${escBill(code)}</small>`:(name?'':'-')}</span><span class="t-qty">${qty}</span><span class="t-rate">${rate.toFixed(2)}</span><span class="t-amount">${total.toFixed(2)}</span></div>`;
   }).join('');
   return `<div class="thermal-head">
     <div class="thermal-shop-name">${escBill(shop.name||'SHOP NAME')}</div>
@@ -3927,7 +3931,7 @@ function buildThermalBillPaper(b){
     <div class="thermal-customer-line"><b>${escBill(b.customer||'Walk-in Customer')}</b>${b.mobile?'<br>Mobile: '+escBill(b.mobile):''}${b.address?'<br>'+escBill(b.address):''}${b.gstin?'<br>GSTIN: '+escBill(b.gstin):''}${b.payment?'<br>Payment: '+escBill(b.payment):''}</div>
   </div>
   <div class="thermal-items-grid">
-    <div class="thermal-item-head"><span>BARCODE</span><span>QTY</span><span>RATE</span><span>AMOUNT</span></div>
+    <div class="thermal-item-head"><span>ITEM / CODE</span><span>QTY</span><span>RATE</span><span>AMOUNT</span></div>
     ${rows}
   </div>
   <div class="thermal-summary">
